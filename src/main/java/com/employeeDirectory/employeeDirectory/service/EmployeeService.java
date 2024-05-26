@@ -36,8 +36,6 @@ public class EmployeeService {
         return employeeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Employee not found with id " + id));
     }
 
-
-
     public EmployeeDTO createEmployee(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
         employee.setName(employeeDTO.getName());
@@ -68,7 +66,43 @@ public class EmployeeService {
         return convertToDTO(savedEmployee);
     }
 
-    private EmployeeDTO convertToDTO(Employee employee) {
+    public EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO) {
+        Employee existingEmployee = getEmployeeById(id);
+
+        existingEmployee.setName(employeeDTO.getName());
+        existingEmployee.setBirthDate(employeeDTO.getBirthDate());
+        existingEmployee.setEmail(employeeDTO.getEmail());
+        existingEmployee.setPhone(employeeDTO.getPhone());
+        existingEmployee.setBio(employeeDTO.getBio());
+        existingEmployee.setHiringDate(employeeDTO.getHiringDate());
+        existingEmployee.setJobPosition(employeeDTO.getJobPosition());
+        existingEmployee.setIsActive(employeeDTO.getIsActive());
+
+        Optional<Department> department = departmentRepository.findById(employeeDTO.getDepartment().getId());
+        Optional<Location> location = locationRepository.findById(employeeDTO.getLocation().getId());
+
+        if (department.isPresent()) {
+            existingEmployee.setDepartment(department.get());
+        } else {
+            throw new IllegalArgumentException("Invalid department ID");
+        }
+
+        if (location.isPresent()) {
+            existingEmployee.setLocation(location.get());
+        } else {
+            throw new IllegalArgumentException("Invalid location ID");
+        }
+
+        Employee updatedEmployee = employeeRepository.save(existingEmployee);
+        return convertToDTO(updatedEmployee);
+    }
+
+    public void deleteEmployee(Long id) {
+        Employee employee = getEmployeeById(id);
+        employeeRepository.delete(employee);
+    }
+
+    public EmployeeDTO convertToDTO(Employee employee) {
         EmployeeDTO employeeDTO = new EmployeeDTO();
         employeeDTO.setId(employee.getId());
         employeeDTO.setName(employee.getName());

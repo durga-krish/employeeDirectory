@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
@@ -28,8 +29,14 @@ public class EmployeeService {
     @Autowired
     private LocationRepository locationRepository;
 
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    public List<EmployeeDTO> searchEmployees(String searchTerm) {
+        List<Employee> employees = employeeRepository.searchEmployees(searchTerm);
+        return employees.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    public List<EmployeeDTO> getAllEmployees() {
+        List<Employee> employees = employeeRepository.findAll();
+        return employees.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     public Employee getEmployeeById(Long id) {

@@ -12,17 +12,24 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/employees")
+@CrossOrigin("*")
 public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
 
+    @GetMapping("/search")
+    public List<EmployeeDTO> searchEmployees(@RequestParam String searchTerm) {
+        return employeeService.searchEmployees(searchTerm);
+    }
+
+
     @GetMapping
-    public List<Employee> getAllEmployees() {
+    public List<EmployeeDTO> getAllEmployees() {
         return employeeService.getAllEmployees();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
         Employee employee = employeeService.getEmployeeById(id);
         EmployeeDTO employeeDTO = employeeService.convertToDTO(employee);
@@ -35,13 +42,13 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("{id}")
     public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable Long id, @RequestBody EmployeeDTO employeeDTO) {
         EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, employeeDTO);
         return ResponseEntity.ok(updatedEmployee);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();

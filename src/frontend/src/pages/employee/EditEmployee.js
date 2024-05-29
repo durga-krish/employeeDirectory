@@ -34,17 +34,11 @@ const EditEmployee =()=>{
             try {
                 const response = await fetch(`http://localhost:8080/api/employees/${id}`);
                 const data = await response.json();
-                // setFormData(data);
-                //
-                // const selectedDepartment = departments.find((dept) => dept.id === data.department.id);
-                // const selectedLocation = locations.find((loc) => loc.id === data.location.id);
 
                 setFormData({
                     ...data,
                     department: { id: data.department.id },
                     location: { id: data.location.id }
-                    // department: selectedDepartment || { id: "" },
-                    // location: selectedLocation || { id: "" },
                 });
             } catch (error) {
                 console.error("Error fetching employee data:", error.message);

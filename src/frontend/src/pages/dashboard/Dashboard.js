@@ -4,13 +4,16 @@ import {useNavigate} from "react-router-dom";
 
 const Dashboard = () =>{
     const [employees, setEmployees ] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-        const fetchEmployees = async () =>{
+        fetchEmployees();
+    }, []);
+
+        const fetchEmployees = async (query = '') =>{
             try{
-                const response = await fetch("http://localhost:8080/api/employees");
+                const response = await fetch(`http://localhost:8080/api/employees${query}`);
                 const data = await response.json();
 
                 if (Array.isArray(data)) {
@@ -22,26 +25,7 @@ const Dashboard = () =>{
             } catch (error){
                 console.error("Error fetching employees:", error.message);
             }
-        }
-
-        fetchEmployees();
-    }, []);
-
-    const handleSearch = async () => {
-        try {
-            const response = await fetch(`http://localhost:8080/api/employees/search?searchTerm=${searchTerm}`);
-            const data = await response.json();
-
-            if (Array.isArray(data)) {
-                setEmployees(data);
-            } else {
-                console.error("Invalid data format:", data);
-            }
-
-        } catch (error) {
-            console.error("Error searching employees:", error.message);
-        }
-    };
+        };
 
     const handleDelete = async (employeeId) =>{
         try{
@@ -68,7 +52,18 @@ const Dashboard = () =>{
 
     const handlePostEmployee = () => {
         navigate("/employees/new");
-    }
+    };
+
+    const handleSearchChange = (event) => {
+        const searchTerm = event.target.value;
+        setSearchTerm(searchTerm);
+
+        if (searchTerm === '') {
+            fetchEmployees();
+        } else {
+            fetchEmployees(`/search?searchTerm=${searchTerm}`);
+        }
+    };
 
     return (
         <>
@@ -79,8 +74,7 @@ const Dashboard = () =>{
                         <h1 className="text-center">Employee List</h1>
                             <div>
                                 <input type="text" placeholder="Search" className="me-2"
-                                       value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
-                                <Button variant="primary" onClick={handleSearch}>Search</Button>
+                                    value={searchTerm} onChange={handleSearchChange}/>
                                 <Button variant="danger" onClick={handlePostEmployee}>Add Employee +</Button>
                             </div>
                         </div>

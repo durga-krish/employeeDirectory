@@ -1,14 +1,13 @@
 package com.employeeDirectory.employeeDirectory.controller;
 
 import com.employeeDirectory.employeeDirectory.dto.EmployeeDTO;
-import com.employeeDirectory.employeeDirectory.entity.Employee;
 import com.employeeDirectory.employeeDirectory.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("api/employees")
@@ -18,22 +17,15 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
-    @GetMapping("/search")
-    public ResponseEntity<List<EmployeeDTO>> searchEmployees(@RequestParam String searchTerm) {
-        List<EmployeeDTO> employees = employeeService.searchEmployees(searchTerm);
-        return ResponseEntity.ok(employees);
-    }
-
-
     @GetMapping
-    public List<EmployeeDTO> getAllEmployees() {
-        return employeeService.getAllEmployees();
+    public ResponseEntity<Page<EmployeeDTO>> getAllEmployees(@RequestParam int page, @RequestParam int size) {
+        Page<EmployeeDTO> employees = employeeService.getAllEmployees(page, size);
+        return ResponseEntity.ok(employees);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
-        Employee employee = employeeService.getEmployeeById(id);
-        EmployeeDTO employeeDTO = employeeService.convertToDTO(employee);
+        EmployeeDTO employeeDTO = employeeService.getEmployeeById(id);
         return ResponseEntity.ok(employeeDTO);
     }
 
@@ -53,5 +45,29 @@ public class EmployeeController {
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<EmployeeDTO>> searchEmployees(@RequestParam String searchTerm,
+                                                             @RequestParam int page,
+                                                             @RequestParam int size) {
+        Page<EmployeeDTO> employees = employeeService.searchEmployees(searchTerm, page, size);
+        return ResponseEntity.ok(employees);
+    }
+
+    @GetMapping("/department/{departmentId}")
+    public ResponseEntity<Page<EmployeeDTO>> getEmployeesByDepartment(@PathVariable Long departmentId,
+                                                                      @RequestParam int page,
+                                                                      @RequestParam int size) {
+        Page<EmployeeDTO> employees = employeeService.findByDepartment(departmentId, page, size);
+        return ResponseEntity.ok(employees);
+    }
+
+    @GetMapping("/location/{locationId}")
+    public ResponseEntity<Page<EmployeeDTO>> getEmployeesByLocation(@PathVariable Long locationId,
+                                                                    @RequestParam int page,
+                                                                    @RequestParam int size) {
+        Page<EmployeeDTO> employees = employeeService.findByLocation(locationId, page, size);
+        return ResponseEntity.ok(employees);
     }
 }

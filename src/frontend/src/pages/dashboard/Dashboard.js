@@ -5,27 +5,39 @@ import {useNavigate} from "react-router-dom";
 const Dashboard = () =>{
     const [employees, setEmployees ] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(9);
+
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchEmployees();
-    }, []);
+    }, [currentPage, searchTerm]);
 
-        const fetchEmployees = async (query = '') =>{
-            try{
-                const response = await fetch(`http://localhost:8080/api/employees${query}`);
-                const data = await response.json();
+    const fetchEmployees = async () => {
+        const params = new URLSearchParams({
+            page: currentPage - 1,
+            size: pageSize,
+            searchTerm: searchTerm
+        }).toString();
 
-                if (Array.isArray(data)) {
-                    setEmployees(data);
-                } else {
-                    console.error("Invalid data format:", data);
-                }
+        try {
+            const response = await fetch(`http://localhost:8080/api/employees/search?${params}`);
+            const data = await response.json();
 
-            } catch (error){
-                console.error("Error fetching employees:", error.message);
+            if (response.ok) {
+                setEmployees(data.content);
+                setTotalItems(data.totalElements);
+                setTotalPages(data.totalPages);
+            } else {
+                throw new Error(data.message || "Failed to fetch data");
             }
-        };
+        } catch (error) {
+            console.error("Error fetching employees:", error);
+        }
+    };
 
     const handleDelete = async (employeeId) =>{
         try{
@@ -55,14 +67,12 @@ const Dashboard = () =>{
     };
 
     const handleSearchChange = (event) => {
-        const searchTerm = event.target.value;
-        setSearchTerm(searchTerm);
+        setSearchTerm(event.target.value);
+        setCurrentPage(1);
+    };
 
-        if (searchTerm === '') {
-            fetchEmployees();
-        } else {
-            fetchEmployees(`/search?searchTerm=${searchTerm}`);
-        }
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
     };
 
     return (
@@ -71,10 +81,13 @@ const Dashboard = () =>{
                 <Row>
                     <Col>
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h1 className="text-center">Employee List</h1>
+                            <h1 className="text-center">Employee List</h1>
                             <div>
-                                <input type="text" placeholder="Search" className="me-2"
-                                    value={searchTerm} onChange={handleSearchChange}/>
+                                <input type="text"
+                                       placeholder="Search"
+                                       className="me-2"
+                                       value={searchTerm}
+                                       onChange={handleSearchChange}/>
                                 <Button variant="danger" onClick={handlePostEmployee}>Add Employee +</Button>
                             </div>
                         </div>
@@ -97,16 +110,31 @@ const Dashboard = () =>{
                                     <td>{employee.email}</td>
                                     <td>{employee.phone}</td>
                                     <td>
-                                        <Button variant="outline-secondary" className="me-2" onClick={()=>handleUpdate(employee.id)}>Edit</Button>
-                                        <Button variant="outline-danger" onClick={()=> handleDelete(employee.id)}>Delete</Button>
+                                        <Button variant="outline-secondary" className="me-2"
+                                                onClick={() => handleUpdate(employee.id)}>Edit</Button>
+                                        <Button variant="outline-danger"
+                                                onClick={() => handleDelete(employee.id)}>Delete</Button>
                                     </td>
                                 </tr>
                             ))}
                             </tbody>
                         </Table>
-                        <Pagination>
-
-                        </Pagination>
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                                {`${Math.min((currentPage - 1) * pageSize + 1, totalItems)} to ${Math.min(currentPage * pageSize, totalItems)} of ${totalItems} items`}
+                            </div>
+                            <Pagination>
+                                {Array.from({length: totalPages}, (_, index) => (
+                                    <Pagination.Item
+                                        key={index + 1}
+                                        active={index + 1 === currentPage}
+                                        onClick={() => handlePageChange(index + 1)}
+                                    >
+                                        {index + 1}
+                                    </Pagination.Item>
+                                ))}
+                            </Pagination>
+                        </div>
                     </Col>
                 </Row>
             </Container>

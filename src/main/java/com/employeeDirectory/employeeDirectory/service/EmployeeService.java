@@ -11,6 +11,10 @@ import com.employeeDirectory.employeeDirectory.repository.EmployeeRepository;
 import com.employeeDirectory.employeeDirectory.repository.LocationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,19 +33,18 @@ public class EmployeeService {
     @Autowired
     private LocationRepository locationRepository;
 
-    public List<EmployeeDTO> searchEmployees(String searchTerm) {
-        List<Employee> employees = employeeRepository.searchEmployees(searchTerm);
-        return employees.stream().map(this::convertToDTO).collect(Collectors.toList());
+    public Page<EmployeeDTO> getAllEmployees(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Employee> employeePage = employeeRepository.findAll(pageable);
+        return convertToDtoPage(employeePage);
     }
 
-    public List<EmployeeDTO> getAllEmployees() {
-        List<Employee> employees = employeeRepository.findAll();
-        return employees.stream().map(this::convertToDTO).collect(Collectors.toList());
+    public EmployeeDTO getEmployeeById(Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Employee not found with id " + id));
+        return convertToDTO(employee);
     }
 
-    public Employee getEmployeeById(Long id) {
-        return employeeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Employee not found with id " + id));
-    }
 
     public EmployeeDTO createEmployee(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
@@ -74,7 +77,8 @@ public class EmployeeService {
     }
 
     public EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO) {
-        Employee existingEmployee = getEmployeeById(id);
+        Employee existingEmployee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Employee not found with id " + id));
 
         existingEmployee.setName(employeeDTO.getName());
         existingEmployee.setBirthDate(employeeDTO.getBirthDate());
@@ -105,9 +109,40 @@ public class EmployeeService {
     }
 
     public void deleteEmployee(Long id) {
-        Employee employee = getEmployeeById(id);
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Employee not found with id " + id));
         employeeRepository.delete(employee);
     }
+
+    public Page<EmployeeDTO> searchEmployees(String searchTerm, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Employee> employeePage = employeeRepository.searchEmployees(searchTerm, pageable);
+        return convertToDtoPage(employeePage);
+    }
+
+    public Page<EmployeeDTO> findByDepartment(Long departmentId, int page, int size) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Employee> employeePage = employeeRepository.findByDepartment(department, pageable);
+        return convertToDtoPage(employeePage);
+    }
+
+    public Page<EmployeeDTO> findByLocation(Long locationId, int page, int size) {
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new IllegalArgumentException("Location not found"));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Employee> employeePage = employeeRepository.findByLocation(location, pageable);
+        return convertToDtoPage(employeePage);
+    }
+
+    private Page<EmployeeDTO> convertToDtoPage(Page<Employee> employeePage) {
+        List<EmployeeDTO> employeeDTOs = employeePage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return new PageImpl<>(employeeDTOs, employeePage.getPageable(), employeePage.getTotalElements());
+    }
+
 
     public EmployeeDTO convertToDTO(Employee employee) {
         EmployeeDTO employeeDTO = new EmployeeDTO();

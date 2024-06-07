@@ -11,10 +11,7 @@ import com.employeeDirectory.employeeDirectory.repository.EmployeeRepository;
 import com.employeeDirectory.employeeDirectory.repository.LocationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,8 +30,11 @@ public class EmployeeService {
     @Autowired
     private LocationRepository locationRepository;
 
-    public Page<EmployeeDTO> getAllEmployees(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+
+
+    public Page<EmployeeDTO> getAllEmployees(int page, int size, String sortBy, String order) {
+        Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<Employee> employeePage = employeeRepository.findAll(pageable);
         return convertToDtoPage(employeePage);
     }
@@ -114,23 +114,26 @@ public class EmployeeService {
         employeeRepository.delete(employee);
     }
 
-    public Page<EmployeeDTO> searchEmployees(String searchTerm, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<EmployeeDTO> searchEmployees(String searchTerm, int page, int size, String sortBy, String order) {
+        Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<Employee> employeePage = employeeRepository.searchEmployees(searchTerm, pageable);
         return convertToDtoPage(employeePage);
     }
 
-    public Page<EmployeeDTO> findByDepartment(Long departmentId, int page, int size) {
+    public Page<EmployeeDTO> findByDepartment(Long departmentId, int page, int size, String sortBy, String order) {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+        Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy);
         Pageable pageable = PageRequest.of(page, size);
         Page<Employee> employeePage = employeeRepository.findByDepartment(department, pageable);
         return convertToDtoPage(employeePage);
     }
 
-    public Page<EmployeeDTO> findByLocation(Long locationId, int page, int size) {
+    public Page<EmployeeDTO> findByLocation(Long locationId, int page, int size, String sortBy, String order) {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new IllegalArgumentException("Location not found"));
+        Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy);
         Pageable pageable = PageRequest.of(page, size);
         Page<Employee> employeePage = employeeRepository.findByLocation(location, pageable);
         return convertToDtoPage(employeePage);

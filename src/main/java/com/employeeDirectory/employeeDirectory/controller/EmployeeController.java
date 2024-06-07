@@ -18,8 +18,8 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @GetMapping
-    public ResponseEntity<Page<EmployeeDTO>> getAllEmployees(@RequestParam int page, @RequestParam int size) {
-        Page<EmployeeDTO> employees = employeeService.getAllEmployees(page, size);
+    public ResponseEntity<Page<EmployeeDTO>> getAllEmployees(@RequestParam int page, @RequestParam int size, @RequestParam String sortBy, @RequestParam String order) {
+        Page<EmployeeDTO> employees = employeeService.getAllEmployees(page, size, sortBy, order);
         return ResponseEntity.ok(employees);
     }
 
@@ -50,24 +50,30 @@ public class EmployeeController {
     @GetMapping("/search")
     public ResponseEntity<Page<EmployeeDTO>> searchEmployees(@RequestParam String searchTerm,
                                                              @RequestParam int page,
-                                                             @RequestParam int size) {
-        Page<EmployeeDTO> employees = employeeService.searchEmployees(searchTerm, page, size);
+                                                             @RequestParam int size,
+                                                             @RequestParam String sortBy,
+                                                             @RequestParam String order) {
+        Page<EmployeeDTO> employees = employeeService.searchEmployees(searchTerm, page, size, sortBy, order);
         return ResponseEntity.ok(employees);
     }
 
     @GetMapping("/department/{departmentId}")
     public ResponseEntity<Page<EmployeeDTO>> getEmployeesByDepartment(@PathVariable Long departmentId,
                                                                       @RequestParam int page,
-                                                                      @RequestParam int size) {
-        Page<EmployeeDTO> employees = employeeService.findByDepartment(departmentId, page, size);
+                                                                      @RequestParam int size,
+                                                                      @RequestParam String sortBy,
+                                                                      @RequestParam String order) {
+        Page<EmployeeDTO> employees = employeeService.findByDepartment(departmentId, page, size, sortBy, order);
         return ResponseEntity.ok(employees);
     }
 
     @GetMapping("/location/{locationId}")
     public ResponseEntity<Page<EmployeeDTO>> getEmployeesByLocation(@PathVariable Long locationId,
                                                                     @RequestParam int page,
-                                                                    @RequestParam int size) {
-        Page<EmployeeDTO> employees = employeeService.findByLocation(locationId, page, size);
+                                                                    @RequestParam int size,
+                                                                    @RequestParam String sortBy,
+                                                                    @RequestParam String order) {
+        Page<EmployeeDTO> employees = employeeService.findByLocation(locationId, page, size, sortBy, order);
         return ResponseEntity.ok(employees);
     }
 }

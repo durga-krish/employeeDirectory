@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import Form from "react-bootstrap/Form";
 import {Button, Col, Container, Row} from "react-bootstrap";
 import {useNavigate, useParams} from "react-router-dom";
-import "./PostEmployee.css";
+import "./style.css";
 
 const PostEmployee =() =>{
     const [formData, setFormData] = useState({

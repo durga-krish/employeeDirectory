@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,7 +32,7 @@ public class EmployeeService {
     @Autowired
     private LocationRepository locationRepository;
 
-
+    private List<String> selectedFields = Arrays.asList("name", "birthDate", "email", "phone");
 
     public Page<EmployeeDTO> getAllEmployees(int page, int size, String sortBy, String order) {
         Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy);
@@ -137,6 +139,18 @@ public class EmployeeService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Employee> employeePage = employeeRepository.findByLocation(location, pageable);
         return convertToDtoPage(employeePage);
+    }
+
+    public List<String> getAvailableFields() {
+        return Arrays.asList("name", "birthDate", "email", "phone", "bio", "hiringDate", "jobPosition", "isActive", "department", "location");
+    }
+
+    public List<String> getSelectedFields() {
+        return selectedFields;
+    }
+
+    public void saveSelectedFields(List<String> selectedFields) {
+        this.selectedFields = selectedFields;
     }
 
     private Page<EmployeeDTO> convertToDtoPage(Page<Employee> employeePage) {

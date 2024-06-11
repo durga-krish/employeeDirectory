@@ -1,4 +1,4 @@
-import "./EditEmployee.css";
+import "./style.css";
 import {useEffect, useState} from "react";
 import Form from "react-bootstrap/Form";
 import {Button, Col, Container, Row} from "react-bootstrap";
@@ -30,6 +30,7 @@ const EditEmployee =()=>{
 
 
     useEffect(() => {
+
         const fetchEmployee = async () => {
             try {
                 const response = await fetch(`http://localhost:8080/api/employees/${id}`);
@@ -58,7 +59,6 @@ const EditEmployee =()=>{
                 console.error("Error fetching departments or locations:", error.message);
             }
         };
-
         fetchEmployee();
         fetchOptions();
     }, [id]);

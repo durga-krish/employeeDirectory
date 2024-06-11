@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("api/employees")
@@ -75,5 +77,23 @@ public class EmployeeController {
                                                                     @RequestParam String order) {
         Page<EmployeeDTO> employees = employeeService.findByLocation(locationId, page, size, sortBy, order);
         return ResponseEntity.ok(employees);
+    }
+
+    @GetMapping("/fields") // Updated endpoint path
+    public ResponseEntity<List<String>> getAvailableFields(){
+        List<String> availableFields = employeeService.getAvailableFields();
+        return ResponseEntity.ok(availableFields);
+    }
+
+    @GetMapping("/fields/selected") // Updated endpoint path
+    public ResponseEntity<List<String>> getSelectedFields(){
+        List<String> selectedFields = employeeService.getSelectedFields();
+        return ResponseEntity.ok(selectedFields);
+    }
+
+    @PostMapping("/fields/selected") // Updated endpoint path
+    public ResponseEntity<Void> saveSelectedFields(@RequestBody List<String> selectedFields) {
+        employeeService.saveSelectedFields(selectedFields);
+        return ResponseEntity.noContent().build();
     }
 }

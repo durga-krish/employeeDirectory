@@ -57,7 +57,7 @@ const Dashboard = () =>{
         try {
             const response = await fetch(`http://localhost:8080/api/departments`);
             const data = await response.json();
-            console.log("Departments:", data); // Add logging
+            console.log("Departments:", data);
             setDepartments(data);
         } catch (error) {
             console.error("Error fetching departments:", error);
@@ -68,7 +68,7 @@ const Dashboard = () =>{
         try {
             const response = await fetch(`http://localhost:8080/api/locations`);
             const data = await response.json();
-            console.log("Locations:", data); // Add logging
+            console.log("Locations:", data);
             setLocations(data);
         } catch (error) {
             console.error("Error fetching locations:", error);

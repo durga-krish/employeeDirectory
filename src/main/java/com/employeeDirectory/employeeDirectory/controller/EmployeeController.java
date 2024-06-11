@@ -79,19 +79,19 @@ public class EmployeeController {
         return ResponseEntity.ok(employees);
     }
 
-    @GetMapping("/fields") // Updated endpoint path
+    @GetMapping("/fields")
     public ResponseEntity<List<String>> getAvailableFields(){
         List<String> availableFields = employeeService.getAvailableFields();
         return ResponseEntity.ok(availableFields);
     }
 
-    @GetMapping("/fields/selected") // Updated endpoint path
+    @GetMapping("/fields/selected")
     public ResponseEntity<List<String>> getSelectedFields(){
         List<String> selectedFields = employeeService.getSelectedFields();
         return ResponseEntity.ok(selectedFields);
     }
 
-    @PostMapping("/fields/selected") // Updated endpoint path
+    @PostMapping("/fields/selected")
     public ResponseEntity<Void> saveSelectedFields(@RequestBody List<String> selectedFields) {
         employeeService.saveSelectedFields(selectedFields);
         return ResponseEntity.noContent().build();

@@ -95,5 +95,5 @@ public class EmployeeController {
     public ResponseEntity<Void> saveSelectedFields(@RequestBody List<String> selectedFields) {
         employeeService.saveSelectedFields(selectedFields);
         return ResponseEntity.noContent().build();
-    }
+    };
 }

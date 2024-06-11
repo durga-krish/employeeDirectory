@@ -23,7 +23,7 @@ const Dashboard = () =>{
 
     useEffect(() => {
         fetchEmployees();
-        fetchDepartments();
+        fetchDepartments()
         fetchLocations();
 
     }, [currentPage,searchTerm, sortBy, order]);

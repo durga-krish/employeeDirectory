@@ -1,13 +1,11 @@
-import {useEffect, useState} from "react";
-import {Button, Col, Container, Pagination, Row, Table, Form, OverlayTrigger, Popover} from "react-bootstrap";
-import {useNavigate} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Button, Col, Container, Pagination, Row, Table, OverlayTrigger, Popover } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 
-const Dashboard = () =>{
-    const [employees, setEmployees ] = useState([]);
-    const [departments, setDepartments] = useState([]);
-    const [locations, setLocations] = useState([]);
+const Dashboard = () => {
+    const [employees, setEmployees] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -16,25 +14,26 @@ const Dashboard = () =>{
     const [sortBy, setSortBy] = useState('');
     const [order, setOrder] = useState('');
     const [showPopover, setShowPopover] = useState(false);
-    const [availableFields, setAvailableFields] = useState(['id', 'name','birthDate', 'bio', 'phone', 'email', 'hiringDate', 'jobPosition', 'isActive', 'department', 'location']);
-    const [selectedFields, setSelectedFields] = useState(['name', 'birthDate', 'email', 'phone']);
+    const allFields = ['id', 'name', 'birthDate', 'bio', 'phone', 'email', 'hiringDate', 'jobPosition', 'isActive', 'department', 'location'];
+    const [selectedFields, setSelectedFields] = useState(() => {
+        const savedFields = localStorage.getItem('selectedFields');
+        return savedFields ? JSON.parse(savedFields) : ['name', 'birthDate', 'email', 'phone'];
+    });
+    const [tempSelectedFields, setTempSelectedFields] = useState([...selectedFields]);
 
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchEmployees();
-        fetchDepartments();
-        fetchLocations();
-
-    }, [currentPage,searchTerm, sortBy, order]);
+    }, [currentPage, searchTerm, sortBy, order]);
 
     const fetchEmployees = async () => {
         const params = new URLSearchParams({
             page: currentPage - 1,
             size: pageSize,
             searchTerm: searchTerm,
-            sortBy : sortBy || 'name',
-            order : order || 'asc'
+            sortBy: sortBy || 'name',
+            order: order || 'asc'
         }).toString();
 
         try {
@@ -53,136 +52,120 @@ const Dashboard = () =>{
         }
     };
 
-    const fetchDepartments = async () => {
+    const handleDelete = async (employeeId) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/departments`);
-            const data = await response.json();
-            console.log("Departments:", data); // Add logging
-            setDepartments(data);
+            const response = await fetch(`http://localhost:8080/api/employees/${employeeId}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                setEmployees((prevEmployees) =>
+                    prevEmployees.filter((employee) => employee.id !== employeeId)
+                );
+                console.log(`Employee with ID ${employeeId} deleted successfully`);
+            } else {
+                console.log("Error deleting employee:", response.statusText);
+            }
         } catch (error) {
-            console.error("Error fetching departments:", error);
+            console.error("Error deleting employee:", error.message);
         }
     };
 
-    const fetchLocations = async () => {
-        try {
-            const response = await fetch(`http://localhost:8080/api/locations`);
-            const data = await response.json();
-            console.log("Locations:", data); // Add logging
-            setLocations(data);
-        } catch (error) {
-            console.error("Error fetching locations:", error);
-        }
+    const handleUpdate = (employeeId) => {
+        navigate(`/employees/${employeeId}`);
     };
 
+    const handlePostEmployee = () => {
+        navigate("/employees/new");
+    };
 
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+        setCurrentPage(1);
+    };
 
-    const handleDelete = async (employeeId) =>{
-        try{
-            const response = await fetch(`http://localhost:8080/api/employees/${employeeId}`,{
-            method: "DELETE",
-        });
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
 
-        if(response.ok) {
-            setEmployees((prevEmployees) =>
-                prevEmployees.filter((employee) => employee.id !== employeeId)
-            );
-            console.log("Employee with ID ${employeeId} deleted successfully");
-        } else {
-            console.log("Error deleting employee:", response.statusText);
+    const handleSort = (column) => {
+        const newOrder = (sortBy === column && order === 'asc') ? 'desc' : 'asc';
+        setSortBy(column);
+        setOrder(newOrder);
+    };
+
+    const handleArrow = (column) => {
+        if (sortBy === column) {
+            return order === 'asc' ? "↑" : "↓";
         }
-    } catch (error){
-        console.error("Error deleting employee:", error.message);
-    }
-};
-
-const handleUpdate = (employeeId) =>{
-    navigate(`/employees/${employeeId}`);
-};
-
-const handlePostEmployee = () => {
-    navigate("/employees/new");
-};
-
-const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-    setCurrentPage(1);
-};
-
-const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-};
-
-const handleSort = (column) => {
-    const newOrder = (sortBy === column && order === 'asc') ? 'desc': 'asc';
-    setSortBy(column);
-    setOrder(newOrder);
-};
-
-const handleArrow = (column) => {
-    if (sortBy === column) {
-        return order === 'asc' ? "↑" : "↓";
-    }
-    return '↑↓';
-};
+        return '↑↓';
+    };
 
     const handleFieldSelectionChange = (field, type) => {
         if (type === 'add') {
-            setSelectedFields(prevSelectedFields => [...new Set([...prevSelectedFields, field])]);
-            setAvailableFields(prevAvailableFields => prevAvailableFields.filter(item => item !== field));
+            setTempSelectedFields(prevSelectedFields => [...new Set([...prevSelectedFields, field])]);
         } else {
-            setAvailableFields(prevAvailableFields => [...new Set([...prevAvailableFields, field])]);
-            setSelectedFields(prevSelectedFields => prevSelectedFields.filter(item => item !== field));
+            setTempSelectedFields(prevSelectedFields => prevSelectedFields.filter(item => item !== field));
         }
     };
 
+    const handleSaveFields = () => {
+        setSelectedFields(tempSelectedFields);
+        localStorage.setItem('selectedFields', JSON.stringify(tempSelectedFields));
+        setShowPopover(false);
+    };
 
-    const popover = (
-        <Popover id="popover-basic">
-            <Popover.Header as="h2"><center>Select Fields to Display</center></Popover.Header>
-            <Popover.Body>
+    const handleCancelFields = () => {
+        setTempSelectedFields([...selectedFields]);
+        setShowPopover(false);
+    };
+
+    const popoverContent = (
+        <Popover id="popover-basic" style={{ backgroundColor: "#f5f5f5", border: "1px solid #ddd", maxWidth: "600px" }}>
+            <Popover.Header as="h2" className="text-center">Select Fields to Display</Popover.Header>
+            <Popover.Body style={{ maxHeight: "400px", overflowY: "auto" }}>
                 <Row>
-                    <Col>
+                    <Col style={{ maxHeight: "100%", overflowY: "auto" }}>
                         <h6>Available Fields</h6>
-                        <ul>
-                            {availableFields.map(field => (
-                                <li key={field}>
-                                    {field} <Button size="sm" onClick={() => handleFieldSelectionChange(field, 'add')}>→</Button>
+                        <ul className="list-unstyled" style={{ maxHeight: "calc(50vh - 150px)", overflowY: "auto" }}>
+                            {allFields.filter(field => !tempSelectedFields.includes(field)).map((field) => (
+                                <li key={field} className="d-flex justify-content-between align-items-center mb-2">
+                                    {field}
+                                    <Button variant="outline-primary" size="sm" onClick={() => handleFieldSelectionChange(field, 'add')}>
+                                        Add
+                                    </Button>
                                 </li>
                             ))}
                         </ul>
                     </Col>
-                    <Col>
+                    <Col style={{ maxHeight: "100%", overflowY: "auto" }}>
                         <h6>Selected Fields</h6>
-                        <ul>
-                            {selectedFields.map(field => (
-                                <li key={field}>
-                                    <Button size="sm" onClick={() => handleFieldSelectionChange(field, 'remove')}>←</Button> {field}
+                        <ul className="list-unstyled" style={{ maxHeight: "calc(50vh - 150px)", overflowY: "auto" }}>
+                            {tempSelectedFields.map((field) => (
+                                <li key={field} className="d-flex justify-content-between align-items-center mb-2">
+                                    {field}
+                                    <Button variant="outline-danger" size="sm" onClick={() => handleFieldSelectionChange(field, 'remove')}>
+                                        Remove
+                                    </Button>
                                 </li>
                             ))}
                         </ul>
                     </Col>
                 </Row>
-                <div className="d-flex justify-content-end">
-                    <Button variant="secondary" className="me-2" onClick={() => setShowPopover(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => setShowPopover(false)}>Save</Button>
+                <div className="d-flex justify-content-end mt-3">
+                    <Button variant="secondary" className="me-2" onClick={handleCancelFields}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleSaveFields}>
+                        Save
+                    </Button>
                 </div>
             </Popover.Body>
         </Popover>
     );
 
-    const getDepartmentNameById = (departmentId) => {
-        const department = departments.find(dep => dep.id === departmentId);
-        return department ? department.name : '';
-    };
-
-    const getLocationNameById = (locationId) => {
-        const location = locations.find(loc => loc.id === locationId);
-        return location ? location.name : '';
-    };
-
     return (
-    <>
+        <>
         <Container className="mt-5">
             <Row>
                 <Col>
@@ -199,12 +182,11 @@ const handleArrow = (column) => {
                             <Button variant="danger" onClick={handlePostEmployee} className="me-2">
                                 Add Employee +
                             </Button>
-
                             <OverlayTrigger
-                                show={showPopover}
                                 trigger="click"
                                 placement="bottom"
-                                overlay={popover}
+                                show={showPopover}
+                                overlay={popoverContent}
                                 onToggle={() => setShowPopover(!showPopover)}
                             >
                                 <Button variant="primary">Select Fields</Button>
@@ -216,35 +198,31 @@ const handleArrow = (column) => {
                         <thead>
                         <tr>
                             {selectedFields.map(field => (
-                                <th key={field} onClick={() => handleSort(field)} style={{cursor: 'pointer'}}>
+                                <th key={field} onClick={() => handleSort(field)} style={{ cursor: 'pointer' }}>
                                     {field.charAt(0).toUpperCase() + field.slice(1)} {handleArrow(field)}
                                 </th>
                             ))}
                             <th>Actions</th>
                         </tr>
                         </thead>
-
                         <tbody>
-                        {employees.map((employee) => (
+                        {employees.map(employee => (
                             <tr key={employee.id}>
                                 {selectedFields.map(field => (
                                     <td key={field}>
-                                        {field === 'department' ? getDepartmentNameById(employee.department) :
-                                            field === 'location' ? getLocationNameById(employee.location) :
-                                                typeof employee[field] === 'object' ? JSON.stringify(employee[field]) : employee[field]}
+                                        {field === 'department' ? employee.department.name :
+                                            field === 'location' ? employee.location.name :
+                                                employee[field] != null ? String(employee[field]) : ""}
                                     </td>
                                 ))}
                                 <td>
-                                    <Button variant="outline-secondary" className="me-2"
-                                            onClick={() => handleUpdate(employee.id)}>Edit</Button>
-                                    <Button variant="outline-danger"
-                                            onClick={() => handleDelete(employee.id)}>Delete</Button>
+                                    <Button variant="outline-secondary" className="me-2" onClick={() => handleUpdate(employee.id)}>Edit</Button>
+                                    <Button variant="outline-danger" onClick={() => handleDelete(employee.id)}>Delete</Button>
                                 </td>
                             </tr>
                         ))}
                         </tbody>
                     </Table>
-
 
                     <div className="d-flex justify-content-between align-items-center">
                         <div>
@@ -268,7 +246,7 @@ const handleArrow = (column) => {
                 </Col>
             </Row>
         </Container>
-    </>
+</>
 );
 };
 

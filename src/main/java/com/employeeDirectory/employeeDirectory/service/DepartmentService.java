@@ -5,6 +5,7 @@ import com.employeeDirectory.employeeDirectory.entity.Department;
 import com.employeeDirectory.employeeDirectory.repository.DepartmentRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +16,6 @@ public class DepartmentService {
 
     @Autowired
     private DepartmentRepository departmentRepository;
-
 
 
     public List<DepartmentDTO> getAllDepartments() {

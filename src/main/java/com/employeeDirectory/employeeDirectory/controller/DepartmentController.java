@@ -4,6 +4,7 @@ import com.employeeDirectory.employeeDirectory.dto.DepartmentDTO;
 import com.employeeDirectory.employeeDirectory.entity.Department;
 import com.employeeDirectory.employeeDirectory.service.DepartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,9 @@ public class DepartmentController {
     private DepartmentService departmentService;
 
     @GetMapping
-    public List<DepartmentDTO> getAllDepartments() {
-        return departmentService.getAllDepartments();
+    public ResponseEntity<List<DepartmentDTO>> getAllDepartments(){
+        List<DepartmentDTO> departments = departmentService.getAllDepartments();
+        return ResponseEntity.ok(departments);
     }
 
     @GetMapping("{id}")

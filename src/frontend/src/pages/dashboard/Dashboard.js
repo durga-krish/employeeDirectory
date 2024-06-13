@@ -103,7 +103,6 @@ const Dashboard = () => {
         return '↑↓';
     };
 
-
     const handleFieldSelectionChange = (field, type) => {
         if (type === 'add') {
             setTempSelectedFields(prevSelectedFields => [...new Set([...prevSelectedFields, field])]);
@@ -166,7 +165,6 @@ const Dashboard = () => {
             </Popover.Body>
         </Popover>
     );
-
 
     return (
         <>

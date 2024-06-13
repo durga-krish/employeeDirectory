@@ -14,6 +14,7 @@ const Dashboard = () => {
     const [sortBy, setSortBy] = useState('');
     const [order, setOrder] = useState('');
     const [showPopover, setShowPopover] = useState(false);
+
     const allFields = ['id', 'name', 'birthDate', 'bio', 'phone', 'email', 'hiringDate', 'jobPosition', 'isActive', 'department', 'location'];
     const [selectedFields, setSelectedFields] = useState(() => {
         const savedFields = localStorage.getItem('selectedFields');

@@ -58,6 +58,13 @@ public class Employee {
     @JsonBackReference
     private Location location;
 
+    @Column(name = "picture")
+    private String picture;
+
+    @Column(name = "picture_file_name")
+    private String pictureFileName;
+
+
     public Long getId() {
         return id;
     }
@@ -160,5 +167,21 @@ public class Employee {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public String getPictureFileName() {
+        return pictureFileName;
+    }
+
+    public void setPictureFileName(String pictureFileName) {
+        this.pictureFileName = pictureFileName;
     }
 }

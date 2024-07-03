@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Button, Col, Container, Pagination, Row, Table, OverlayTrigger, Popover } from "react-bootstrap";
+import {Button, Col, Container, Pagination, Row, Table, OverlayTrigger, Popover, Card} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import listIcon from "../../icon/list-icon.png";
+import gridIcon from "../../icon/grid-icon.png";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
+import "./Dashboard.css";
 
 const Dashboard = () => {
     const [employees, setEmployees] = useState([]);
@@ -14,13 +17,13 @@ const Dashboard = () => {
     const [sortBy, setSortBy] = useState('');
     const [order, setOrder] = useState('');
     const [showPopover, setShowPopover] = useState(false);
-
     const allFields = ['id', 'name', 'birthDate', 'bio', 'phone', 'email', 'hiringDate', 'jobPosition', 'isActive', 'department', 'location'];
     const [selectedFields, setSelectedFields] = useState(() => {
         const savedFields = localStorage.getItem('selectedFields');
         return savedFields ? JSON.parse(savedFields) : ['name', 'birthDate', 'email', 'phone'];
     });
     const [tempSelectedFields, setTempSelectedFields] = useState([...selectedFields]);
+    const [viewType, setViewType] = useState('list');
 
     const navigate = useNavigate();
 
@@ -167,88 +170,139 @@ const Dashboard = () => {
 
     return (
         <>
-        <Container className="mt-5">
-            <Row>
-                <Col>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h1 className="text-center">Employee List</h1>
-                        <div>
-                            <input
-                                type="text"
-                                placeholder="Search"
-                                className="me-2"
-                                value={searchTerm}
-                                onChange={handleSearchChange}
-                            />
-                            <Button variant="danger" onClick={handlePostEmployee} className="me-2">
-                                Add Employee +
-                            </Button>
-                            <OverlayTrigger
-                                trigger="click"
-                                placement="bottom"
-                                show={showPopover}
-                                overlay={popoverContent}
-                                onToggle={() => setShowPopover(!showPopover)}
-                            >
-                                <Button variant="primary">Select Fields</Button>
-                            </OverlayTrigger>
-                        </div>
-                    </div>
-
-                    <Table striped bordered hover responsive>
-                        <thead>
-                        <tr>
-                            {selectedFields.map(field => (
-                                <th key={field} onClick={() => handleSort(field)} style={{ cursor: 'pointer' }}>
-                                    {field.charAt(0).toUpperCase() + field.slice(1)} {handleArrow(field)}
-                                </th>
-                            ))}
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {employees.map(employee => (
-                            <tr key={employee.id}>
-                                {selectedFields.map(field => (
-                                    <td key={field}>
-                                        {field === 'department' ? employee.department.name :
-                                            field === 'location' ? employee.location.name :
-                                                employee[field] != null ? String(employee[field]) : ""}
-                                    </td>
-                                ))}
-                                <td>
-                                    <Button variant="outline-secondary" className="me-2" onClick={() => handleUpdate(employee.id)}>Edit</Button>
-                                    <Button variant="outline-danger" onClick={() => handleDelete(employee.id)}>Delete</Button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </Table>
-
-                    <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                            {`${Math.min((currentPage - 1) * pageSize + 1, totalItems)} to ${Math.min(
-                                currentPage * pageSize,
-                                totalItems
-                            )} of ${totalItems} items`}
-                        </div>
-                        <Pagination>
-                            {Array.from({ length: totalPages }, (_, index) => (
-                                <Pagination.Item
-                                    key={index + 1}
-                                    active={index + 1 === currentPage}
-                                    onClick={() => handlePageChange(index + 1)}
+            <Container className="mt-5">
+                <Row>
+                    <Col>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h1 className="text-center">Employee List</h1>
+                            </div>
+                                <div className="d-flex justify-content-between mb-3">
+                                <input
+                                    type="text"
+                                    placeholder="Search"
+                                    className="me-2 rounded-1"
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                />
+                                <div>
+                                <Button variant="danger" onClick={handlePostEmployee} className="me-2">
+                                    Add Employee +
+                                </Button>
+                                <OverlayTrigger
+                                    trigger="click"
+                                    placement="bottom"
+                                    show={showPopover}
+                                    overlay={popoverContent}
+                                    onToggle={() => setShowPopover(!showPopover)}
                                 >
-                                    {index + 1}
-                                </Pagination.Item>
-                            ))}
-                        </Pagination>
-                    </div>
+                                    <Button variant="secondary" className="me-2">Select Fields</Button>
+                                </OverlayTrigger>
+
+                                <Button
+                                    className={`view-button ${viewType === 'list' ? 'active' : ''}`}
+                                    onClick={() => setViewType('list')}
+                                >
+                                    <img src={listIcon} alt="List View" />
+                                </Button>
+
+                                <Button
+                                    className={`view-button ${viewType === 'card' ? 'active' : ''}`}
+                                    onClick={() => setViewType('card')}
+                                >
+                                    <img src={gridIcon} alt="Card View" />
+                                </Button>
+                            </div>
+                                </div>
+
+                        {viewType === 'list' ? (
+                            <Table striped bordered hover responsive>
+                                <thead>
+                                <tr>
+                                    {selectedFields.map(field => (
+                                        <th key={field} onClick={() => handleSort(field)} style={{cursor: 'pointer'}}>
+                                            {field.charAt(0).toUpperCase() + field.slice(1)} {handleArrow(field)}
+                                        </th>
+                                    ))}
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {employees.map(employee => (
+                                    <tr key={employee.id}>
+                                        {selectedFields.map(field => (
+                                            <td key={field}>
+                                                {field === 'department' ? employee.department.name :
+                                                    field === 'location' ? employee.location.name :
+                                                        employee[field] != null ? String(employee[field]) : ""}
+                                            </td>
+                                        ))}
+                                        <td>
+                                            <Button variant="outline-secondary" className="me-2"
+                                                    onClick={() => handleUpdate(employee.id)}>Edit</Button>
+                                            <Button variant="outline-danger"
+                                                    onClick={() => handleDelete(employee.id)}>Delete</Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </Table>
+                        ) : (
+                            <Row xs={1} md={2} lg={3} className="g-4">
+                                {employees.map(employee => (
+                                    <Col md={4} key={employee.id}>
+                                        <Card className="h-100 mb-4">
+                                            <Card.Body className="d-flex align-items-center">
+                                                <div>
+                                                    <Card.Img
+                                                        variant="top"
+                                                        src={`http://localhost:8080/api/employees/${employee.id}/pictureFile`}
+                                                        alt="Employee"
+                                                        style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "50%" }}
+                                                    />
+                                                </div>
+                                                <div className="ms-3">
+                                                    <Card.Title>{employee.name}</Card.Title>
+                                                    <Card.Text>
+                                                        <strong>Email:</strong> {employee.email}<br />
+                                                        <strong>Birthdate:</strong> {employee.birthDate}<br />
+                                                        <strong>Phone:</strong> {employee.phone}<br />
+                                                    </Card.Text>
+                                                    <Button variant="outline-secondary" className="me-2"
+                                                            onClick={() => handleUpdate(employee.id)}>Edit</Button>
+                                                    <Button variant="outline-danger"
+                                                            onClick={() => handleDelete(employee.id)}>Delete</Button>
+                                                </div>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                ))}
+                            </Row>
+                        )}
+
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                                {`${Math.min((currentPage - 1) * pageSize + 1, totalItems)} to ${Math.min(
+                                    currentPage * pageSize,
+                                    totalItems
+                                )} of ${totalItems} items`}
+                            </div>
+                            <Pagination>
+                                {Array.from({length: totalPages}, (_, index) => (
+                                    <Pagination.Item
+                                        key={index + 1}
+                                        active={index + 1 === currentPage}
+                                        onClick={() => handlePageChange(index + 1)}
+                                    >
+                                        {index + 1}
+                                    </Pagination.Item>
+                                ))}
+                            </Pagination>
+                        </div>
                 </Col>
-            </Row>
-        </Container>
-</>
-);
+                </Row>
+            </Container>
+        </>
+    );
 };
 
 export default Dashboard;

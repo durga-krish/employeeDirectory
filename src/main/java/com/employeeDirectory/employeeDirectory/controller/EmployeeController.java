@@ -1,11 +1,14 @@
 package com.employeeDirectory.employeeDirectory.controller;
 import com.employeeDirectory.employeeDirectory.dto.EmployeeDTO;
+import com.employeeDirectory.employeeDirectory.entity.Employee;
 import com.employeeDirectory.employeeDirectory.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -28,16 +31,48 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeDTO);
     }
 
+    @GetMapping("/{id}/pictureFile")
+    public ResponseEntity<byte[]> getEmployeePicture(@PathVariable Long id) {
+        try {
+            byte[] file = employeeService.getEmployeePicture(id);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(file);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @PostMapping
-    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO employeeDTO) {
+    public ResponseEntity<EmployeeDTO> createEmployee(@ModelAttribute EmployeeDTO employeeDTO,
+                                                      @RequestParam(value = "pictureFile", required = false) MultipartFile pictureFile) {
+        if (pictureFile != null && !pictureFile.isEmpty()) {
+            String fileName = employeeService.savePicture(pictureFile);
+            employeeDTO.setPicture(fileName);
+            employeeDTO.setPictureFileName(pictureFile.getOriginalFilename()); // Set pictureFileName
+        }
+
         EmployeeDTO createdEmployee = employeeService.createEmployee(employeeDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable Long id, @RequestBody EmployeeDTO employeeDTO) {
-        EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, employeeDTO);
-        return ResponseEntity.ok(updatedEmployee);
+    @PutMapping("/{id}")
+    public ResponseEntity<EmployeeDTO> updateEmployee(
+            @PathVariable Long id,
+            @ModelAttribute EmployeeDTO employeeDTO,
+            @RequestParam(value = "pictureFile", required = false) MultipartFile pictureFile) {
+        try {
+            if (pictureFile != null && !pictureFile.isEmpty()) {
+                String fileName = employeeService.savePicture(pictureFile);
+                employeeDTO.setPicture(fileName);
+                employeeDTO.setPictureFileName(pictureFile.getOriginalFilename());
+            }
+
+            EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, employeeDTO);
+            return ResponseEntity.ok(updatedEmployee);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DeleteMapping("{id}")

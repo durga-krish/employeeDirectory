@@ -1,0 +1,21 @@
+.view-button {
+    border: none;
+    background-color: transparent;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.view-button img {
+    height: 20px;
+    width: 20px;
+}
+
+.view-button.active {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+}
+
+.view-button:not(.active):hover {
+    background-color: #e0e0e0;
+}

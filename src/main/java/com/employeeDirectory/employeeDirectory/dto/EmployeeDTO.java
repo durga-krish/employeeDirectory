@@ -1,6 +1,7 @@
 package com.employeeDirectory.employeeDirectory.dto;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,4 +21,8 @@ public class EmployeeDTO {
     private LocalDateTime updatedAt;
     private DepartmentDTO department;
     private LocationDTO location;
+    private MultipartFile pictureFile;
+    private String picture;
+    private String pictureFileName;
+
 }

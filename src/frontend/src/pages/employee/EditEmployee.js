@@ -20,8 +20,10 @@ const EditEmployee =()=>{
         },
         location:{
             id:""
-        }
-
+        },
+        pictureFile: null,
+        picture: "",
+        pictureFileName: ""
     });
 
     const [departments, setDepartments] = useState([]);
@@ -34,37 +36,59 @@ const EditEmployee =()=>{
         const fetchEmployee = async () => {
             try {
                 const response = await fetch(`http://localhost:8080/api/employees/${id}`);
-                const data = await response.json();
-
-                setFormData({
-                    ...data,
-                    department: { id: data.department.id },
-                    location: { id: data.location.id }
-                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setFormData({
+                        name: data.name,
+                        birthDate: data.birthDate,
+                        email: data.email,
+                        phone: data.phone,
+                        jobPosition: data.jobPosition,
+                        bio: data.bio,
+                        hiringDate: data.hiringDate,
+                        isActive: data.isActive,
+                        department: {
+                            id: data.department.id
+                        },
+                        location: {
+                            id: data.location.id
+                        },
+                        pictureFile: null,
+                        picture: `http://localhost:8080/api/employees/${id}/pictureFile`,
+                        pictureFileName: data.pictureFileName
+                    });
+                } else {
+                    console.error("Failed to fetch employee data:", response.statusText);
+                }
             } catch (error) {
-                console.error("Error fetching employee data:", error.message);
+                console.error("Error fetching employee data:", error);
             }
         };
 
         const fetchOptions = async () => {
             try {
-                const deptResponse = await fetch("http://localhost:8080/api/departments");
-                const depts = await deptResponse.json();
-                setDepartments(depts);
-
-                const locResponse = await fetch("http://localhost:8080/api/locations");
-                const locs = await locResponse.json();
-                setLocations(locs);
+                const [deptResponse, locResponse] = await Promise.all([
+                    fetch("http://localhost:8080/api/departments"),
+                    fetch("http://localhost:8080/api/locations")
+                ]);
+                if (deptResponse.ok && locResponse.ok) {
+                    const [depts, locs] = await Promise.all([deptResponse.json(), locResponse.json()]);
+                    setDepartments(depts);
+                    setLocations(locs);
+                } else {
+                    console.error("Failed to fetch departments or locations:", deptResponse.statusText, locResponse.statusText);
+                }
             } catch (error) {
-                console.error("Error fetching departments or locations:", error.message);
+                console.error("Error fetching departments or locations:", error);
             }
         };
+
         fetchEmployee();
         fetchOptions();
     }, [id]);
 
     const handleInputChange = (event) => {
-        const { name, value, type, checked } = event.target;
+        const { name, value, type, checked, files } = event.target;
         if (name === "departmentId") {
             setFormData({
                 ...formData,
@@ -75,6 +99,21 @@ const EditEmployee =()=>{
                 ...formData,
                 location: { id: value }
             });
+        } else if (name === "pictureFile") {
+            if (files.length > 0) {
+                setFormData({
+                    ...formData,
+                    pictureFile: files[0],
+                    picture: URL.createObjectURL(files[0]),
+                    pictureFileName: files[0].name
+                });
+            } else {
+                setFormData({
+                    ...formData,
+                    pictureFile: null,
+                    pictureFileName: ""
+                });
+            }
         } else {
             setFormData({
                 ...formData,
@@ -85,28 +124,45 @@ const EditEmployee =()=>{
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const payload = {
-            ...formData,
-            department: { id: formData.department.id},
-            location: { id: formData.location.id},
-        };
+
+        const formDataToSend = new FormData();
+        formDataToSend.append("name", formData.name);
+        formDataToSend.append("birthDate", formData.birthDate);
+        formDataToSend.append("email", formData.email);
+        formDataToSend.append("phone", formData.phone);
+        formDataToSend.append("jobPosition", formData.jobPosition);
+        formDataToSend.append("bio", formData.bio);
+        formDataToSend.append("hiringDate", formData.hiringDate);
+        formDataToSend.append("isActive", formData.isActive);
+
+        if (formData.department.id) {
+            formDataToSend.append("department.id", formData.department.id);
+        }
+        if (formData.location.id) {
+            formDataToSend.append("location.id", formData.location.id);
+        }
+        if (formData.pictureFile) {
+            formDataToSend.append("pictureFile", formData.pictureFile);
+        }
+
         try {
             const response = await fetch(`http://localhost:8080/api/employees/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: formDataToSend,
             });
+
             if (response.ok) {
                 const data = await response.json();
-                console.log("Employee updated: ", data);
+                console.log("Employee updated:", data);
                 navigate("/");
             } else {
-                console.log("Error updating employee: ", response.statusText);
+                console.error("Error updating employee:", response.statusText);
             }
         } catch (error) {
-            console.log("Error updating employee:", error.message);
+            console.error("Error updating employee:", error);
         }
     };
+
 
     const handleBack = () =>{
         navigate("/");
@@ -245,6 +301,34 @@ const EditEmployee =()=>{
                                 </Form.Control>
                             </Form.Group>
                             <br/>
+
+                            <Form.Group controlId="formPictureFile">
+                                <Form.Label>Picture</Form.Label>
+                                <div className="custom-file">
+                                    <Form.Control
+                                        type="file"
+                                        name="pictureFile"
+                                        accept="image/*"
+                                        onChange={handleInputChange}
+                                        className="custom-file-input"
+                                    />
+                                    {/*<Form.Label className="custom-file-label">*/}
+                                    {/*    {formData.pictureFileName || "Current picture"}*/}
+                                    {/*</Form.Label>*/}
+                                </div>
+
+                                    {formData.picture && (
+                                        <div>
+                                            <img
+                                                src={formData.picture}
+                                                alt="Employee"
+                                                className="employee-img-preview"
+                                                style={{width: "150px", marginTop: "5px"}}
+                                            />
+                                        </div>
+                                    )}
+                            </Form.Group>
+                            <br />
 
                             <div className="button-group">
                                 <Button variant="secondary" onClick={handleBack} className="back-button mr-2">

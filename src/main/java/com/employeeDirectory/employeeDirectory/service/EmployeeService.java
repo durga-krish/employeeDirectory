@@ -6,14 +6,21 @@ import com.employeeDirectory.employeeDirectory.dto.LocationDTO;
 import com.employeeDirectory.employeeDirectory.entity.Department;
 import com.employeeDirectory.employeeDirectory.entity.Employee;
 import com.employeeDirectory.employeeDirectory.entity.Location;
+import com.employeeDirectory.employeeDirectory.exception.FileStorageException;
 import com.employeeDirectory.employeeDirectory.repository.DepartmentRepository;
 import com.employeeDirectory.employeeDirectory.repository.EmployeeRepository;
 import com.employeeDirectory.employeeDirectory.repository.LocationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
 
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,6 +36,50 @@ public class EmployeeService {
 
     @Autowired
     private LocationRepository locationRepository;
+
+    private final Path fileStorageLocation = Paths.get("employee-photos")
+            .toAbsolutePath().normalize();
+
+    public String savePicture(MultipartFile pictureFile) {
+        if (pictureFile != null && !pictureFile.isEmpty()) {
+            String fileName = StringUtils.cleanPath(pictureFile.getOriginalFilename());
+            Path uploadPath = this.fileStorageLocation.resolve(fileName).normalize();
+            try {
+                Files.copy(pictureFile.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
+                return fileName;
+            } catch (IOException ex) {
+                throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
+            }
+        }
+        return null;
+    }
+
+    public byte[] getEmployeePicture(Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Employee not found with id " + id));
+
+        String fileName = employee.getPicture();
+        Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+        try {
+            return Files.readAllBytes(filePath);
+        } catch (IOException ex) {
+            throw new FileStorageException("Could not read file: " + fileName, ex);
+        }
+    }
+
+    public Resource loadPictureAsResource(String fileName) {
+        try {
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("Could not read the file: " + fileName);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("File not found " + fileName, ex);
+        }
+    }
 
     public Page<EmployeeDTO> getAllEmployees(int page, int size, String sortBy, String order) {
         Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy);
@@ -55,20 +106,25 @@ public class EmployeeService {
         employee.setJobPosition(employeeDTO.getJobPosition());
         employee.setIsActive(employeeDTO.getIsActive());
 
+        if (employeeDTO.getPictureFile() != null) {
+            employee.setPicture(savePicture(employeeDTO.getPictureFile()));
+        }
+
         Optional<Department> department = departmentRepository.findById(employeeDTO.getDepartment().getId());
+        department.ifPresentOrElse(
+                dept -> employee.setDepartment(dept),
+                () -> {
+                    throw new EntityNotFoundException("Department not found with id " + employeeDTO.getDepartment().getId());
+                }
+        );
+
         Optional<Location> location = locationRepository.findById(employeeDTO.getLocation().getId());
-
-        if (department.isPresent()) {
-            employee.setDepartment(department.get());
-        } else {
-            throw new IllegalArgumentException("Invalid department ID");
-        }
-
-        if (location.isPresent()) {
-            employee.setLocation(location.get());
-        } else {
-            throw new IllegalArgumentException("Invalid location ID");
-        }
+        location.ifPresentOrElse(
+                loc -> employee.setLocation(loc),
+                () -> {
+                    throw new EntityNotFoundException("Location not found with id " + employeeDTO.getLocation().getId());
+                }
+        );
 
         Employee savedEmployee = employeeRepository.save(employee);
         return convertToDTO(savedEmployee);
@@ -100,6 +156,11 @@ public class EmployeeService {
             existingEmployee.setLocation(location.get());
         } else {
             throw new IllegalArgumentException("Invalid location ID");
+        }
+
+        if (employeeDTO.getPictureFile() != null && !employeeDTO.getPictureFile().isEmpty()) {
+            existingEmployee.setPicture(savePicture(employeeDTO.getPictureFile()));
+            existingEmployee.setPictureFileName(employeeDTO.getPictureFile().getOriginalFilename());
         }
 
         Employee updatedEmployee = employeeRepository.save(existingEmployee);
@@ -160,25 +221,29 @@ public class EmployeeService {
         employeeDTO.setCreatedAt(employee.getCreatedAt());
         employeeDTO.setUpdatedAt(employee.getUpdatedAt());
 
-        DepartmentDTO departmentDTO  = new DepartmentDTO();
-        departmentDTO.setId(employee.getDepartment().getId());
-        departmentDTO.setName(employee.getDepartment().getName());
-        departmentDTO.setIsActive(employee.getDepartment().getIsActive());
-        departmentDTO.setCreatedAt(employee.getDepartment().getCreatedAt());
-        departmentDTO.setUpdatedAt(employee.getDepartment().getUpdatedAt());
+        if (employee.getDepartment() !=null) {
+            DepartmentDTO departmentDTO = new DepartmentDTO();
+            departmentDTO.setId(employee.getDepartment().getId());
+            departmentDTO.setName(employee.getDepartment().getName());
+            departmentDTO.setIsActive(employee.getDepartment().getIsActive());
+            departmentDTO.setCreatedAt(employee.getDepartment().getCreatedAt());
+            departmentDTO.setUpdatedAt(employee.getDepartment().getUpdatedAt());
+            employeeDTO.setDepartment(departmentDTO);
+        }
 
-        LocationDTO locationDTO = new LocationDTO();
-        locationDTO.setId(employee.getLocation().getId());
-        locationDTO.setName(employee.getLocation().getName());
-        locationDTO.setAddress(employee.getLocation().getAddress());
-        locationDTO.setZipCode(employee.getLocation().getZipCode());
-        locationDTO.setLatitude(employee.getLocation().getLatitude());
-        locationDTO.setLongitude(employee.getLocation().getLongitude());
-        locationDTO.setCreatedAt(employee.getLocation().getCreatedAt());
-        locationDTO.setUpdatedAt(employee.getLocation().getUpdatedAt());
-
-        employeeDTO.setDepartment(departmentDTO);
-        employeeDTO.setLocation(locationDTO);
+        if (employee.getLocation() !=null) {
+            LocationDTO locationDTO = new LocationDTO();
+            locationDTO.setId(employee.getLocation().getId());
+            locationDTO.setName(employee.getLocation().getName());
+            locationDTO.setAddress(employee.getLocation().getAddress());
+            locationDTO.setZipCode(employee.getLocation().getZipCode());
+            locationDTO.setLatitude(employee.getLocation().getLatitude());
+            locationDTO.setLongitude(employee.getLocation().getLongitude());
+            locationDTO.setCreatedAt(employee.getLocation().getCreatedAt());
+            locationDTO.setUpdatedAt(employee.getLocation().getUpdatedAt());
+            employeeDTO.setLocation(locationDTO);
+        }
+        employeeDTO.setPictureFile(null);
 
         return employeeDTO;
     }

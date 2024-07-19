@@ -26,6 +26,7 @@ const PostEmployee =() =>{
     const [departments, setDepartments] = useState([]);
     const [locations, setLocations] = useState([]);
     const navigate = useNavigate();
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
 
@@ -75,8 +76,33 @@ const PostEmployee =() =>{
         }
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phonePattern = /^\+?[1-9]\d{1,14}$/;
+
+        if (!formData.name) newErrors.name = "Name is required";
+        if (!formData.birthDate) newErrors.birthDate = "Birth Date is required";
+        if (!emailPattern.test(formData.email)) {
+            newErrors.email = "Email should be valid";
+        }
+        if (!phonePattern.test(formData.phone)) {
+            newErrors.phone = "Phone should be valid";
+        }
+        if (!formData.jobPosition) newErrors.jobPosition = "Job Position is required";
+        if (!formData.hiringDate) newErrors.hiringDate = "Hiring Date is required";
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
 
         const formDataToSend = new FormData();
         formDataToSend.append("name", formData.name);
@@ -98,9 +124,18 @@ const PostEmployee =() =>{
             formDataToSend.append("pictureFile", formData.pictureFile);
         }
 
+        // Log formDataToSend for debugging
+        // for (let [key, value] of formDataToSend.entries()) {
+        //     console.log(`${key}: ${value}`);
+        // }
+
         try {
+            const token = localStorage.getItem("token");
             const response = await fetch("http://localhost:8080/api/employees", {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
                 body: formDataToSend,
             });
             if (response.ok) {
@@ -129,64 +164,94 @@ const PostEmployee =() =>{
                         <Form onSubmit={handleSubmit}>
                             <br/>
                             <Form.Group controlId="formName">
-                                <Form.Label>Name</Form.Label>
+                                <Form.Label>Name
+                                    <span className="required">*</span>
+                                </Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="name"
                                     placeholder="Enter name"
                                     value={formData.name}
                                     onChange={handleInputChange}
+                                    isInvalid={!!errors.name}
                                 />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.name}
+                                </Form.Control.Feedback>
                             </Form.Group>
                             <br/>
 
                             <Form.Group controlId="formBirthDate">
-                                <Form.Label>Birth Date</Form.Label>
+                                <Form.Label>
+                                    Birth Date <span className="required">*</span>
+                                </Form.Label>
                                 <Form.Control
                                     type="date"
                                     name="birthDate"
                                     placeholder="Enter Birth Date"
                                     value={formData.birthDate}
                                     onChange={handleInputChange}
+                                    isInvalid={!!errors.birthDate}
                                 />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.birthDate}
+                                </Form.Control.Feedback>
                             </Form.Group>
                             <br/>
 
                             <Form.Group controlId="formEmail">
-                                <Form.Label>Email</Form.Label>
+                                <Form.Label>
+                                    Email <span className="required">*</span>
+                                </Form.Label>
                                 <Form.Control
                                     type="email"
                                     name="email"
                                     placeholder="Enter email"
                                     value={formData.email}
                                     onChange={handleInputChange}
+                                    isInvalid={!!errors.email}
                                 />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.email}
+                                </Form.Control.Feedback>
                             </Form.Group>
                             <br/>
 
                             <Form.Group controlId="formPhone">
-                                <Form.Label>Phone</Form.Label>
+                                <Form.Label>
+                                    Phone <span className="required">*</span>
+                                </Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="phone"
                                     placeholder="Enter phone"
                                     value={formData.phone}
                                     onChange={handleInputChange}
+                                    isInvalid={!!errors.phone}
                                 />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.phone}
+                                </Form.Control.Feedback>
                             </Form.Group>
                             <br/>
 
                             <Form.Group controlId="formJobPosition">
-                                <Form.Label>Job Position</Form.Label>
+                                <Form.Label>
+                                    Job Position <span className="required">*</span>
+                                </Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="jobPosition"
                                     placeholder="Enter job position"
                                     value={formData.jobPosition}
                                     onChange={handleInputChange}
+                                   isInvalid={!!errors.jobPosition}
                                 />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.jobPosition}
+                                </Form.Control.Feedback>
                             </Form.Group>
-                            <br/>
+                            <br />
 
                             <Form.Group controlId="formBio">
                                 <Form.Label>Bio</Form.Label>
@@ -201,14 +266,20 @@ const PostEmployee =() =>{
                             <br/>
 
                             <Form.Group controlId="formHiringDate">
-                                <Form.Label>Hiring Date</Form.Label>
+                                <Form.Label>
+                                    Hiring Date <span className="required">*</span>
+                                </Form.Label>
                                 <Form.Control
                                     type="date"
                                     name="hiringDate"
                                     placeholder="Enter hiring date"
                                     value={formData.hiringDate}
                                     onChange={handleInputChange}
+                                    isInvalid={!!errors.hiringDate}
                                 />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.hiringDate}
+                                </Form.Control.Feedback>
                             </Form.Group>
                             <br/>
 

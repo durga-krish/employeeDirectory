@@ -2,8 +2,13 @@ package com.employeeDirectory.employeeDirectory.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,24 +22,33 @@ public class Employee {
     private Long id;
 
     @Column(name = "name", nullable = false)
+    @NotBlank(message = "Name is mandatory")
     private String name;
 
-    @Column(name = "birth_date")
+    @Column(name = "birth_date", nullable = false)
+    @NotNull(message = "Birth Date is mandatory")
     private LocalDate birthDate;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false)
+    @NotBlank(message = "Email is mandatory")
+    @Email(message = "Email should be valid")
     private String email;
 
-    @Column(name = "phone", nullable = false, unique = true)
+
+    @Column(name = "phone", nullable = false)
+    @NotBlank(message = "Phone is mandatory")
+    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Phone number should be valid")
     private String phone;
 
     @Column(name = "bio")
     private String bio;
 
-    @Column(name = "hiring_date")
+    @Column(name = "hiring_date", nullable = false)
+    @NotNull(message = "Hiring Date is mandatory")
     private LocalDate hiringDate;
 
-    @Column(name = "job_position")
+    @Column(name = "job_position", nullable = false)
+   @NotBlank(message = "Job Position is mandatory")
     private String jobPosition;
 
     @Column(name = "is_active")

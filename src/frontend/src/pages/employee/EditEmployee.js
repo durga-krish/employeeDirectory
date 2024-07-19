@@ -122,6 +122,7 @@ const EditEmployee =()=>{
         }
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -308,25 +309,24 @@ const EditEmployee =()=>{
                                     <Form.Control
                                         type="file"
                                         name="pictureFile"
-                                        accept="image/*"
                                         onChange={handleInputChange}
                                         className="custom-file-input"
                                     />
-                                    {/*<Form.Label className="custom-file-label">*/}
-                                    {/*    {formData.pictureFileName || "Current picture"}*/}
-                                    {/*</Form.Label>*/}
+                                    <Form.Label className="custom-file-label">
+                                        { formData.pictureFileName }
+                                    </Form.Label>
                                 </div>
 
-                                    {formData.picture && (
-                                        <div>
-                                            <img
-                                                src={formData.picture}
-                                                alt="Employee"
-                                                className="employee-img-preview"
-                                                style={{width: "150px", marginTop: "5px"}}
-                                            />
-                                        </div>
-                                    )}
+                                {formData.picture && (
+                                    <div className="mt-3">
+                                        <img
+                                            src={formData.picture}
+                                            alt="Employee"
+                                            className="img-thumbnail"
+                                            style={{ width: "150px", height: "150px", objectFit: "cover" }}
+                                        />
+                                    </div>
+                                )}
                             </Form.Group>
                             <br />
 

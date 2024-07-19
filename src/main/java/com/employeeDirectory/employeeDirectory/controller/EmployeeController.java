@@ -1,7 +1,7 @@
 package com.employeeDirectory.employeeDirectory.controller;
 import com.employeeDirectory.employeeDirectory.dto.EmployeeDTO;
-import com.employeeDirectory.employeeDirectory.entity.Employee;
 import com.employeeDirectory.employeeDirectory.service.EmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -44,7 +44,7 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeDTO> createEmployee(@ModelAttribute EmployeeDTO employeeDTO,
+    public ResponseEntity<EmployeeDTO> createEmployee(@Valid @ModelAttribute EmployeeDTO employeeDTO,
                                                       @RequestParam(value = "pictureFile", required = false) MultipartFile pictureFile) {
         if (pictureFile != null && !pictureFile.isEmpty()) {
             String fileName = employeeService.savePicture(pictureFile);
@@ -59,7 +59,7 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeDTO> updateEmployee(
             @PathVariable Long id,
-            @ModelAttribute EmployeeDTO employeeDTO,
+            @Valid @ModelAttribute EmployeeDTO employeeDTO,
             @RequestParam(value = "pictureFile", required = false) MultipartFile pictureFile) {
         try {
             if (pictureFile != null && !pictureFile.isEmpty()) {

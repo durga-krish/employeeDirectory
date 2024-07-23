@@ -1,11 +1,13 @@
 package com.employeeDirectory.employeeDirectory.dto;
 
 import com.employeeDirectory.employeeDirectory.entity.OurUsers;
+import com.employeeDirectory.employeeDirectory.entity.Role;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -20,12 +22,26 @@ public class ReqRes {
     private String expirationTime;
     private String name;
     private String city;
-    private String role;
     private String email;
     private String password;
     private OurUsers ourUsers;
     private List<OurUsers> ourUsersList;
     private List<String> roles;
+
+    public ReqRes(){
+
+    }
+
+    public ReqRes(OurUsers ourUsers) {
+        this.ourUsers = ourUsers;
+        this.name = ourUsers.getName();
+        this.city = ourUsers.getCity();
+        this.email = ourUsers.getEmail();
+        this.roles = ourUsers.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toList());
+    }
+
 
     public List<String> getRoles() {
         return roles;

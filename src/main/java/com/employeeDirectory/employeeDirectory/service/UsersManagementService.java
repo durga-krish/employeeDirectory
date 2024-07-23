@@ -11,15 +11,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.text.html.Option;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class UsersManagementService {
+    private static final Logger logger = LoggerFactory.getLogger(UsersManagementService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -40,14 +41,21 @@ public class UsersManagementService {
         ReqRes resp = new ReqRes();
 
         try {
+            logger.info("Registering user: {}", registrationRequest);
+
             OurUsers ourUser = new OurUsers();
             ourUser.setEmail(registrationRequest.getEmail());
             ourUser.setCity(registrationRequest.getCity());
-            ourUser.setRole(registrationRequest.getRole());
+            //ourUser.setRole(registrationRequest.getRole());
             ourUser.setName(registrationRequest.getName());
             ourUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
 
             List<String> roleNames = registrationRequest.getRoles();
+            if (roleNames == null || roleNames.isEmpty()) {
+                throw new IllegalArgumentException("Role names must not be empty");
+            }
+
+            Set<Role> roles = new HashSet<>();
             for (String roleName : roleNames) {
                 Role role = roleRepository.findByName(roleName);
                 if (role == null) {
@@ -55,8 +63,9 @@ public class UsersManagementService {
                     role.setName(roleName);
                     role = roleRepository.save(role);
                 }
-                ourUser.getRoles().add(role);
+                roles.add(role);
             }
+            ourUser.setRoles(roles);
 
             OurUsers ourUsersResult = userRepository.save(ourUser);
             if (ourUsersResult.getId() > 0) {
@@ -66,6 +75,7 @@ public class UsersManagementService {
             }
 
         } catch (Exception e) {
+            logger.error("Error registering user", e);
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
         }
@@ -85,7 +95,7 @@ public class UsersManagementService {
 
             response.setStatusCode(200);
             response.setToken(jwt);
-            response.setRole(user.getRole());
+            //response.setRole(user.getRole());
             response.setRefreshToken(refreshToken);
             response.setExpirationTime("24Hrs");
             response.setMessage("Successfully logged in");
@@ -185,7 +195,7 @@ public class UsersManagementService {
                 existingUser.setEmail(updatedUser.getEmail());
                 existingUser.setName(updatedUser.getName());
                 existingUser.setCity(updatedUser.getCity());
-                existingUser.setRole(updatedUser.getRole());
+               // existingUser.setRole(updatedUser.getRole());
 
                 if (updatedUser.getPassword() !=null && !updatedUser.getPassword().isEmpty()) {
                     existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
@@ -206,19 +216,39 @@ public class UsersManagementService {
         return reqRes;
     }
 
-    public ReqRes getMyInfo(String email){
+//    public ReqRes getMyInfo(String email){
+//        ReqRes reqRes = new ReqRes();
+//        try {
+//            Optional<OurUsers> userOptional = userRepository.findByEmail(email);
+//            if (userOptional.isPresent()) {
+//                reqRes.setOurUsers(userOptional.get());
+//                reqRes.setStatusCode(200);
+//                reqRes.setMessage("Successful");
+//            }else {
+//                reqRes.setStatusCode(404);
+//                reqRes.setMessage("User not found for update");
+//            }
+//        } catch (Exception e){
+//            reqRes.setStatusCode(500);
+//            reqRes.setMessage("Error occurred while getting user info: " + e.getMessage());
+//        }
+//        return reqRes;
+//    }
+
+    public ReqRes getMyInfo(String email) {
         ReqRes reqRes = new ReqRes();
         try {
             Optional<OurUsers> userOptional = userRepository.findByEmail(email);
             if (userOptional.isPresent()) {
-                reqRes.setOurUsers(userOptional.get());
+                OurUsers user = userOptional.get();
+                reqRes = new ReqRes(user);
                 reqRes.setStatusCode(200);
                 reqRes.setMessage("Successful");
-            }else {
+            } else {
                 reqRes.setStatusCode(404);
                 reqRes.setMessage("User not found for update");
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             reqRes.setStatusCode(500);
             reqRes.setMessage("Error occurred while getting user info: " + e.getMessage());
         }

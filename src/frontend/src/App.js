@@ -7,12 +7,8 @@ import PostDepartment from "./pages/department/PostDepartment";
 import EditDepartment from "./pages/department/EditDepartment";
 import PostLocation from "./pages/location/PostLocation";
 import EditLocation from "./pages/location/EditLocation";
-import Register from "./pages/login/Register";
-import Login from "./pages/login/Login";
-import Logout from "./pages/login/Logout";
 import Department from "./pages/department/Department";
 import Location from "./pages/location/Location"
-import WelcomePage from "./pages/dashboard/WelcomePage";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Navbar from "./components/common/Navbar";
 import LoginPage from "./components/auth/LoginPage";
@@ -21,9 +17,11 @@ import UserService from "./components/service/UserService";
 import RegistrationPage from "./components/auth/RegistrationPage";
 import UserManagementPage from "./components/userspage/UserManagementPage";
 import UpdateUser from "./components/userspage/UpdateUser";
+import {AuthProvider} from "./components/auth/AuthContext";
 
 const App = () =>{
   return (
+      <AuthProvider>
          <>
              <Navbar />
          <Routes>
@@ -42,16 +40,14 @@ const App = () =>{
              <Route path="/login" element={<LoginPage />} />
              <Route path="/profile" element={<ProfilePage />} />
 
-             {UserService.adminOnly() && (
-                 <>
                      <Route path="/register" element={<RegistrationPage />} />
                      <Route path="/admin/user-management" element={<UserManagementPage />} />
                      <Route path="/update-user/:userId" element={<UpdateUser />} />
-                 </>
-             )}
+
              <Route path="*" element={<Navigate to="/login" />} />
          </Routes>
          </>
+      </AuthProvider>
   );
 };
 

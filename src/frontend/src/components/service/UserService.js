@@ -84,8 +84,6 @@ class UserService {
         }
     }
 
-    //Authentication checker
-
     static logout(){
         localStorage.removeItem('token')
         localStorage.removeItem('role')

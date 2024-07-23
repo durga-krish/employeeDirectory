@@ -10,7 +10,7 @@ function UpdateUser() {
     const [userData, setUserData] = useState({
         name: '',
         email: '',
-        role: '',
+        roles: '',
         city: ''
     });
 

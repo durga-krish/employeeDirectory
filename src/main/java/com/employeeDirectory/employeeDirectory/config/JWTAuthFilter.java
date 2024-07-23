@@ -35,7 +35,11 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         final String jwtToken;
         final String userEmail;
 
-        if (authHeader == null || !authHeader.isBlank( )) {
+//        if (authHeader == null || !authHeader.isBlank( )) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -46,15 +50,22 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = ourUserDetailsService.loadUserByUsername(userEmail);
 
+//            if (jwtUtils.isTokenValid(jwtToken, userDetails)) {
+//                SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+//                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+//                        userDetails, null, userDetails.getAuthorities()
+//                );
+//                token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                securityContext.setAuthentication(token);
+//                SecurityContextHolder.setContext(securityContext);
+//
+//            }
             if (jwtUtils.isTokenValid(jwtToken, userDetails)) {
-                SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()
                 );
-                token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                securityContext.setAuthentication(token);
-                SecurityContextHolder.setContext(securityContext);
-
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
         filterChain.doFilter(request, response);

@@ -1,19 +1,24 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import UserService from "../service/UserService";
 import {Link} from "react-router-dom";
+import AuthContext from "../auth/AuthContext";
 
 function UserManagementPage() {
     const [users, setUsers] = useState([]);
+    const { isAuthenticated, isAdmin } = useContext(AuthContext);
+
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        if (isAuthenticated && isAdmin){
+            fetchUsers();
+        }
+    }, [isAuthenticated, isAdmin]);
 
     const fetchUsers = async () => {
         try{
             const token = localStorage.getItem('token');
             const response = await UserService.getAllUsers(token);
-            setUsers(response.ourUsersList);
+            setUsers(response.ourUsersList || []);
         } catch (error) {
             console.error('Error fetching users:', error);
         }
@@ -32,10 +37,15 @@ function UserManagementPage() {
         }
     };
 
+    if (!isAuthenticated || !isAdmin) {
+        return <div>Access Denied</div>;
+    }
+
     return (
         <div className="User-management-container">
             <h2>Users Management Page</h2>
-            <button className="reg-button"> <Link to="/register">Add User</Link></button>
+            <button className="reg-button">
+                <Link to="/register">Add User</Link></button>
             <table>
                 <thead>
                 <tr>

@@ -172,6 +172,10 @@ public class UsersManagementService {
         try {
             Optional<OurUsers> userOptional = userRepository.findById(userId);
             if (userOptional.isPresent()) {
+                //userRepository.deleteUserRolesByUserId(userId);
+                OurUsers user = userOptional.get();
+                user.getRoles().clear();
+               userRepository.save(user);
             userRepository.deleteById(userId);
             reqRes.setStatusCode(200);
             reqRes.setMessage("User deleted successfully");
@@ -215,25 +219,6 @@ public class UsersManagementService {
         }
         return reqRes;
     }
-
-//    public ReqRes getMyInfo(String email){
-//        ReqRes reqRes = new ReqRes();
-//        try {
-//            Optional<OurUsers> userOptional = userRepository.findByEmail(email);
-//            if (userOptional.isPresent()) {
-//                reqRes.setOurUsers(userOptional.get());
-//                reqRes.setStatusCode(200);
-//                reqRes.setMessage("Successful");
-//            }else {
-//                reqRes.setStatusCode(404);
-//                reqRes.setMessage("User not found for update");
-//            }
-//        } catch (Exception e){
-//            reqRes.setStatusCode(500);
-//            reqRes.setMessage("Error occurred while getting user info: " + e.getMessage());
-//        }
-//        return reqRes;
-//    }
 
     public ReqRes getMyInfo(String email) {
         ReqRes reqRes = new ReqRes();

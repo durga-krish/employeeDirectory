@@ -14,10 +14,21 @@ export const AuthProvider = ({ children}) => {
         setIsUser(UserService.isUser());
     }, []);
 
-    const login = () => {
-        setIsAuthenticated(true);
-        setIsAdmin(UserService.isAdmin());
-        setIsUser(UserService.isUser());
+    const login = async (email, password) => {
+        try {
+            const userData = await UserService.login(email, password);
+            if (userData.token) {
+                localStorage.setItem('token', userData.token);
+                localStorage.setItem('role', userData.role);
+                setIsAuthenticated(true);
+                setIsAdmin(UserService.isAdmin());
+                setIsUser(UserService.isUser());
+            } else {
+                throw new Error(userData.message);
+            }
+        } catch (error) {
+            throw error;
+        }
     };
 
     const logout = () => {

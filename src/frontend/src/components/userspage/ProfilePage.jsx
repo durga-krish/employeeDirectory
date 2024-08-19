@@ -6,13 +6,15 @@ import {useContext} from "react";
 
 function ProfilePage() {
     const [profileInfo, setProfileInfo] = useState({ roles: [] });
-    const { login } = useContext(AuthContext);
+    //const { login } = useContext(AuthContext);
+    const {isAuthenticated} = useContext(AuthContext);
     const [error, setError] = useState();
 
     useEffect(() => {
-        fetchProfileInfo();
-        login();
-    }, []);
+        if (isAuthenticated){
+            fetchProfileInfo();
+        }
+    }, [isAuthenticated]);
 
     const  fetchProfileInfo = async () => {
         try {
@@ -40,7 +42,6 @@ function ProfilePage() {
             <p>Name: {profileInfo.name}</p>
             <p>Email: {profileInfo.email}</p>
             <p>City: {profileInfo.city}</p>
-            <p>Role: {profileInfo.roles.join(', ')}</p>
 
             <button>
                 <Link to={`/update-user/${profileInfo.id}`}>

@@ -17,13 +17,15 @@ import UserService from "./components/service/UserService";
 import RegistrationPage from "./components/auth/RegistrationPage";
 import UserManagementPage from "./components/userspage/UserManagementPage";
 import UpdateUser from "./components/userspage/UpdateUser";
-import {AuthProvider} from "./components/auth/AuthContext";
+import AuthContext, {AuthProvider} from "./components/auth/AuthContext";
 
 const App = () =>{
   return (
       <AuthProvider>
-         <>
-             <Navbar />
+         <AuthContext.Consumer>
+             {({ isAuthenticated }) => (
+                 <>
+                 {isAuthenticated && <Navbar />}
          <Routes>
              <Route path='/' element={<LoginPage />} />
              <Route path='/dashboard' element={<Dashboard />} />
@@ -47,6 +49,8 @@ const App = () =>{
              <Route path="*" element={<Navigate to="/login" />} />
          </Routes>
          </>
+                 )}
+         </AuthContext.Consumer>
       </AuthProvider>
   );
 };

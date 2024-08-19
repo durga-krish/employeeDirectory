@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,18 +21,21 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<EmployeeDTO>> getAllEmployees(@RequestParam int page, @RequestParam int size, @RequestParam String sortBy, @RequestParam String order) {
         Page<EmployeeDTO> employees = employeeService.getAllEmployees(page, size, sortBy, order);
         return ResponseEntity.ok(employees);
     }
 
     @GetMapping("{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
         EmployeeDTO employeeDTO = employeeService.getEmployeeById(id);
         return ResponseEntity.ok(employeeDTO);
     }
 
     @GetMapping("/{id}/pictureFile")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<byte[]> getEmployeePicture(@PathVariable Long id) {
         try {
             byte[] file = employeeService.getEmployeePicture(id);
@@ -44,6 +48,7 @@ public class EmployeeController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployeeDTO> createEmployee(@Valid @ModelAttribute EmployeeDTO employeeDTO,
                                                       @RequestParam(value = "pictureFile", required = false) MultipartFile pictureFile) {
         if (pictureFile != null && !pictureFile.isEmpty()) {
@@ -57,6 +62,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployeeDTO> updateEmployee(
             @PathVariable Long id,
             @Valid @ModelAttribute EmployeeDTO employeeDTO,
@@ -76,12 +82,14 @@ public class EmployeeController {
     }
 
     @DeleteMapping("{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<EmployeeDTO>> searchEmployees(@RequestParam String searchTerm,
                                                              @RequestParam int page,
                                                              @RequestParam int size,
@@ -92,6 +100,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/department/{departmentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<EmployeeDTO>> getEmployeesByDepartment(@PathVariable Long departmentId,
                                                                       @RequestParam int page,
                                                                       @RequestParam int size,
@@ -102,6 +111,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/location/{locationId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<EmployeeDTO>> getEmployeesByLocation(@PathVariable Long locationId,
                                                                     @RequestParam int page,
                                                                     @RequestParam int size,

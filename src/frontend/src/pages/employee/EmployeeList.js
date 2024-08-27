@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
     Button,
     Col,
@@ -16,6 +16,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 import "./EmployeeList.css";
 import "@flaticon/flaticon-uicons/css/all/all.css";
+import AuthContext from "../../components/auth/AuthContext";
 
 const EmployeeList = () => {
     const [employees, setEmployees] = useState([]);
@@ -34,6 +35,7 @@ const EmployeeList = () => {
     });
     const [tempSelectedFields, setTempSelectedFields] = useState([...selectedFields]);
     const [viewType, setViewType] = useState('list');
+    const {isAdmin, isUser} = useContext(AuthContext);
 
     const navigate = useNavigate();
 
@@ -142,6 +144,7 @@ const EmployeeList = () => {
         setShowPopover(false);
     };
 
+
     const popoverContent = (
         <Popover id="popover-basic" style={{ backgroundColor: "#f5f5f5", border: "1px solid #ddd", maxWidth: "600px" }}>
             <Popover.Header as="h2" className="text-center">Select Fields to Display</Popover.Header>
@@ -209,9 +212,11 @@ const EmployeeList = () => {
                                         </InputGroup>
                                     </div>
                                     <div>
+                                        {isAdmin && (
                                         <Button variant="danger" onClick={handlePostEmployee} className="me-2">
                                             <i className="fi fi-rr-square-plus"></i>
                                         </Button>
+                                            )}
 
                                         <OverlayTrigger
                                             trigger="click"
@@ -250,7 +255,7 @@ const EmployeeList = () => {
                                             {field.charAt(0).toUpperCase() + field.slice(1)} {handleArrow(field)}
                                         </th>
                                     ))}
-                                    <th>Actions</th>
+                                    {isAdmin && <th>Actions</th>}
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -263,6 +268,7 @@ const EmployeeList = () => {
                                                         employee[field] != null ? String(employee[field]) : ""}
                                             </td>
                                         ))}
+                                        {isAdmin && (
                                         <td>
                                             <div className="d-flex justify-content-around">
                                             <Button
@@ -279,6 +285,7 @@ const EmployeeList = () => {
                                             </Button>
                                             </div>
                                         </td>
+                                        )}
                                     </tr>
                                 ))}
                                 </tbody>
@@ -306,10 +313,15 @@ const EmployeeList = () => {
                                                         <strong>Birthdate:</strong> {employee.birthDate}<br />
                                                         <strong>Phone:</strong> {employee.phone}<br />
                                                     </Card.Text>
+                                                    {isAdmin && (
+                                                        <>
                                                     <Button variant="outline-secondary" className="me-2"
                                                             onClick={() => handleUpdate(employee.id)}>Edit</Button>
                                                     <Button variant="outline-danger"
-                                                            onClick={() => handleDelete(employee.id)}>Delete</Button>
+                                                            onClick={() => handleDelete(employee.id)}>Delete
+                                                    </Button>
+                                            </>
+                                                )}
                                                 </div>
                                             </Card.Body>
                                         </Card>

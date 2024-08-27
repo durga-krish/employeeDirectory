@@ -5,7 +5,7 @@ import "@flaticon/flaticon-uicons/css/all/all.css";
 import "./Navbar.css";
 
 function Navbar(){
-    const { isAuthenticated, isAdmin, isUser, logout } = useContext(AuthContext);
+    const { isAuthenticated, isAdmin, isUser, user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -30,22 +30,15 @@ function Navbar(){
 
     return (
         isAuthenticated && (
-            <nav className="navbar">
-                <ul className="navbar-list">
-                    {isAdmin && <li><Link to="/admin/user-management">User Management</Link></li>}
-                    {isAdmin && <li><Link to="/dashboard">Dashboard</Link></li>}
-                    {isUser && <li><Link to="/dashboard">Dashboard</Link></li>}
-                    {isAuthenticated && (
-                        <li className="navbar-profile">
+            <div className="profile-container">
                             <i className="fi fi-ss-user profile-icon" onClick={toggleDropdown}></i>
                             {dropdownOpen && (
                                 <div className="dropdown-menu">
                                     <div className="dropdown-header">
                                         <div className="dropdown-user-info">
-                                            <p className="dropdown-name">Username</p>
-                                            <p className="dropdown-email">Email</p>
+                                            <p className="dropdown-name">{user?.email}</p>
+                                            <p className="dropdown-email">Hi, {user?.name}!</p>
                                         </div>
-
                                     </div>
 
                                     <ul className="dropdown-options">
@@ -55,10 +48,8 @@ function Navbar(){
                                     </ul>
                                 </div>
                                 )}
-                        </li>
-                    )}
-                </ul>
-            </nav>
+
+            </div>
         )
     );
 }

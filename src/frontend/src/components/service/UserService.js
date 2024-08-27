@@ -38,7 +38,7 @@ class UserService {
 
     static async getYourProfile(token) {
         try{
-            const response = await axios.get(`${UserService.BASE_URL}/adminuser/get-profile`,
+            const response = await axios.get(`${UserService.BASE_URL}/admin/get-profile`,
                 {
                     headers: {Authorization: `Bearer ${token}`}
                 })
@@ -74,7 +74,7 @@ class UserService {
 
     static async updateUser(userId, userData, token) {
         try{
-            const response = await axios.put(`${UserService.BASE_URL}/admin/update/{userId}`, userData,
+            const response = await axios.put(`${UserService.BASE_URL}/admin/update/${userId}`, userData,
                 {
                     headers: {Authorization: `Bearer ${token}`}
                 })
@@ -94,14 +94,18 @@ class UserService {
         return !!token
     }
 
+    static getRole() {
+        return localStorage.getItem('role');
+    }
+
     static isAdmin(){
-        const role = localStorage.getItem('role')
-        return role === 'ADMIN'
+        const role = this.getRole();
+        return role === 'ADMIN';
     }
 
     static isUser(){
-        const role = localStorage.getItem('role')
-        return role === 'USER'
+        const role = this.getRole();
+        return role === 'USER';
     }
 
     static adminOnly(){

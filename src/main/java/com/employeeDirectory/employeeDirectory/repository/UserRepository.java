@@ -15,9 +15,5 @@ public interface UserRepository extends JpaRepository<OurUsers, Integer> {
 
     Optional<OurUsers> findByEmail(String email);
 
-//    @Transactional
-//    @Modifying
-//    @Query("DELETE FROM UserRole ur WHERE ur.user.id = :userId")
-//            void deleteUserRolesByUserId(@Param("userId") Integer userId);
 
 }

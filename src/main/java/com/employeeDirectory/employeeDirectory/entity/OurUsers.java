@@ -26,21 +26,21 @@ public class OurUsers implements UserDetails {
     private String password;
     private String city;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
 
-    private Set<Role> roles = new HashSet<>();
+    private Set<Role> roles;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -66,5 +66,54 @@ public class OurUsers implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public Set<Role> getRoles() {
+        System.out.println("Roles for user " + this.email + ": " + this.roles);
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 }

@@ -21,7 +21,7 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @GetMapping
-    //@PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<EmployeeDTO>> getAllEmployees(@RequestParam int page, @RequestParam int size, @RequestParam String sortBy, @RequestParam String order) {
         Page<EmployeeDTO> employees = employeeService.getAllEmployees(page, size, sortBy, order);
         return ResponseEntity.ok(employees);

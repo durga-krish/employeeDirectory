@@ -10,9 +10,6 @@ export const AuthProvider = ({ children}) => {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        // setIsAuthenticated(UserService.isAuthenticated());
-        // setIsAdmin(UserService.isAdmin());
-        // setIsUser(UserService.isUser());
         if (isAuthenticated) {
             const fetchUserDetails = async () => {
                 try{

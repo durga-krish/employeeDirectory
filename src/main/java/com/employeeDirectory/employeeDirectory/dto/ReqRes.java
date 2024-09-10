@@ -40,6 +40,8 @@ public class ReqRes {
         this.roles = ourUsers.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toList());
+        System.out.println("Roles in ReqRes constructor: " + this.roles);
+
     }
 
 
@@ -50,4 +52,5 @@ public class ReqRes {
     public void setRoles(List<String> roles) {
         this.roles = roles;
     }
+
 }

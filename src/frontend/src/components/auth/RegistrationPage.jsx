@@ -66,7 +66,7 @@ function RegistrationPage(){
             });
             setError('');
             alert('User registered successfully');
-            navigate('/admin/user-management');
+            navigate('/dashboard');
         }catch (error) {
             console.error('Error registering user:', error);
             setError('An error occurred while registering the user');

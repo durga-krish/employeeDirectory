@@ -9,6 +9,7 @@ import com.employeeDirectory.employeeDirectory.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -37,35 +38,43 @@ public class UsersManagementService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public ReqRes register(ReqRes registrationRequest){
-        ReqRes resp = new ReqRes();
+    private Set<Role> resolveRoles(List<String> roleNames) {
+        Set<Role> roles = new HashSet<>();
+        for (String roleName : roleNames) {
+            Role role = roleRepository.findByName(roleName);
+            if (role == null) {
+                role = new Role();
+                role.setName(roleName);
+                role = roleRepository.save(role);
+            }
+            roles.add(role);
+        }
+        return roles;
+    }
 
+
+    public ReqRes register(ReqRes registrationRequest) {
+        ReqRes resp = new ReqRes();
         try {
             logger.info("Registering user: {}", registrationRequest);
-
             OurUsers ourUser = new OurUsers();
             ourUser.setEmail(registrationRequest.getEmail());
             ourUser.setCity(registrationRequest.getCity());
-            //ourUser.setRole(registrationRequest.getRole());
             ourUser.setName(registrationRequest.getName());
             ourUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
 
+            // Extract role resolution to a helper method
             List<String> roleNames = registrationRequest.getRoles();
             if (roleNames == null || roleNames.isEmpty()) {
                 throw new IllegalArgumentException("Role names must not be empty");
             }
+            // Debugging statement
+            logger.info("Resolving roles: {}", roleNames);
 
-            Set<Role> roles = new HashSet<>();
-            for (String roleName : roleNames) {
-                Role role = roleRepository.findByName(roleName);
-                if (role == null) {
-                    role = new Role();
-                    role.setName(roleName);
-                    role = roleRepository.save(role);
-                }
-                roles.add(role);
-            }
-            ourUser.setRoles(roles);
+            Set<Role> resolvedRoles = resolveRoles(roleNames);
+            logger.info("Resolved roles: {}", resolvedRoles); // Debugging statement
+
+            ourUser.setRoles(resolveRoles(roleNames));
 
             OurUsers ourUsersResult = userRepository.save(ourUser);
             if (ourUsersResult.getId() > 0) {
@@ -73,7 +82,6 @@ public class UsersManagementService {
                 resp.setMessage("User Saved Successfully");
                 resp.setStatusCode(200);
             }
-
         } catch (Exception e) {
             logger.error("Error registering user", e);
             resp.setStatusCode(500);
@@ -81,6 +89,7 @@ public class UsersManagementService {
         }
         return resp;
     }
+
 
     public ReqRes login(ReqRes loginRequest){
         ReqRes response = new ReqRes();
@@ -136,9 +145,15 @@ public class UsersManagementService {
         ReqRes reqRes = new ReqRes();
 
         try {
-            List<OurUsers> result = userRepository.findAll();
-            if (!result.isEmpty()){
-                reqRes.setOurUsersList(result);
+            List<OurUsers> users = userRepository.findAll();
+
+            if (!users.isEmpty()) {
+                List<ReqRes> userDtos = users.stream()
+                        .map(ReqRes::new)
+                        .collect(Collectors.toList());
+
+               // reqRes.setReqResList(userDtos);
+                reqRes.setOurUsersList(users);
                 reqRes.setStatusCode(200);
                 reqRes.setMessage("Successful");
             } else {
@@ -146,12 +161,13 @@ public class UsersManagementService {
                 reqRes.setMessage("No users found");
             }
             return reqRes;
-        }catch (Exception e){
+        } catch (Exception e) {
             reqRes.setStatusCode(500);
             reqRes.setMessage("Error occurred: " + e.getMessage());
             return reqRes;
         }
     }
+
 
     public ReqRes getUsersById(Integer id){
         ReqRes reqRes = new ReqRes();
@@ -205,6 +221,11 @@ public class UsersManagementService {
                     existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
                 }
 
+                if (updatedUser.getRoles() != null) {
+                    existingUser.setRoles(resolveRoles(updatedUser.getRoles().stream().map(Role::getName).collect(Collectors.toList())));
+                }
+
+
                 OurUsers savedUser = userRepository.save(existingUser);
                 reqRes.setOurUsers(savedUser);
                 reqRes.setStatusCode(200);
@@ -222,21 +243,29 @@ public class UsersManagementService {
 
     public ReqRes getMyInfo(String email) {
         ReqRes reqRes = new ReqRes();
+        //Logger logger = LoggerFactory.getLogger(getClass());
         try {
             Optional<OurUsers> userOptional = userRepository.findByEmail(email);
             if (userOptional.isPresent()) {
                 OurUsers user = userOptional.get();
+                //logger.debug("User found: {}", user);
+
                 reqRes = new ReqRes(user);
                 reqRes.setStatusCode(200);
                 reqRes.setMessage("Successful");
+                System.out.println("Roles in getMyInfo: " + user.getRoles());
+
             } else {
                 reqRes.setStatusCode(404);
-                reqRes.setMessage("User not found for update");
+                reqRes.setMessage("User not found");
             }
         } catch (Exception e) {
+           // logger.error("Error occurred while getting user info: ", e);
             reqRes.setStatusCode(500);
             reqRes.setMessage("Error occurred while getting user info: " + e.getMessage());
         }
+
         return reqRes;
     }
 }
+

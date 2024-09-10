@@ -40,11 +40,11 @@ function UpdateUser() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try{
-            const confirmDelete = window.confirm('Are you sure you want to delete this user?');
+            const confirmDelete = window.confirm('Are you sure you want to update this user?');
             if (confirmDelete) {
                 const token = localStorage.getItem('token');
                 await UserService.updateUser(userId, userData, token);
-                navigate("/admin/user-management")
+                navigate("/profile")
             }
         } catch (error) {
             console.error('Error updating user profile:', error);
@@ -92,6 +92,7 @@ function UpdateUser() {
                 </div>
 
                 <Button type="submit">Update</Button>
+
 
             </form>
         </div>

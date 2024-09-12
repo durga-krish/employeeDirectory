@@ -5,7 +5,7 @@ class UserService {
 
     static async login(email, password) {
         try{
-            const response = await axios.post(`${UserService.BASE_URL}/auth/login`,{email, password});
+            const response = await axios.post(`${UserService.BASE_URL}/api/users/login`,{email, password});
             return response.data;
         }catch (err){
             throw err;
@@ -26,7 +26,7 @@ class UserService {
 
     static async getAllUsers(token) {
         try{
-            const response = await axios.get(`${UserService.BASE_URL}/admin/get-all-users`,
+            const response = await axios.get(`${UserService.BASE_URL}/api/users`,
                 {
                     headers: {Authorization: `Bearer ${token}`}
                 })
@@ -50,7 +50,7 @@ class UserService {
 
     static async getUserById(userId, token) {
         try{
-            const response = await axios.get(`${UserService.BASE_URL}/admin/get-users/${userId}`,
+            const response = await axios.get(`${UserService.BASE_URL}/api/users/${userId}`,
                 {
                     headers: {Authorization: `Bearer ${token}`}
                 })
